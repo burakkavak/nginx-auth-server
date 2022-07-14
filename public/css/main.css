@@ -1,0 +1,22 @@
+.main-container {
+    min-height: 100vh;
+    padding-top: var(--bs-gutter-x,.75rem);
+}
+
+@media (min-width: 768px) {
+    .main-container {
+        padding-top: initial;
+    }
+}
+
+.main-container > div.row {
+    min-height: inherit;
+}
+
+.main-container > div.row > div {
+    min-height: inherit;
+}
+
+.login-form {
+    max-width: 384px;
+}
