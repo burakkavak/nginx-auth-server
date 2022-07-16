@@ -1,10 +1,14 @@
 package main
 
 import (
+	"embed"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/crypto/bcrypt"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,6 +16,12 @@ import (
 	"strconv"
 	"time"
 )
+
+//go:embed templates
+var templateFiles embed.FS
+
+//go:embed css
+var staticFiles embed.FS
 
 var GinMode = gin.DebugMode
 
@@ -93,6 +103,43 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:    "cookie",
+				Aliases: []string{"c"},
+				Usage:   "options for cookie management",
+				Subcommands: []*cli.Command{
+					{
+						Name:    "list",
+						Aliases: []string{"l"},
+						Usage:   "list all cookies",
+						Action: func(cCtx *cli.Context) error {
+							cookies := GetCookies()
+
+							fmt.Printf("the database contains %d cookies\n", len(cookies))
+
+							if len(cookies) != 0 {
+								cookiesJson, _ := json.MarshalIndent(cookies, "", "  ")
+
+								fmt.Println(string(cookiesJson))
+							}
+
+							return nil
+						},
+					},
+					{
+						Name:    "purge",
+						Aliases: []string{"p"},
+						Usage:   "remove all cookies",
+						Action: func(cCtx *cli.Context) error {
+							PurgeCookies()
+
+							fmt.Printf("deleted all cookies from database")
+
+							return nil
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -105,11 +152,14 @@ func runGin(daemonMode bool) {
 	gin.SetMode(GinMode)
 
 	router := gin.Default()
-	router.LoadHTMLGlob("public/*.html")
-	router.Static("/css", "public/css")
+	templates, _ := template.ParseFS(templateFiles, "templates/*.html")
+	router.SetHTMLTemplate(templates)
+	router.StaticFS("/static", http.FS(staticFiles))
 
+	router.GET("/auth", authenticate)
 	router.GET("/login", login)
 	router.POST("/login", processLoginForm)
+	router.GET("/logout", logout)
 
 	address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
 
@@ -163,8 +213,54 @@ func removeUser(username string) {
 	}
 }
 
+func authenticate(c *gin.Context) {
+	cookieValue, err := c.Cookie("Auth")
+
+	if err != nil || VerifyCookie(cookieValue) != nil {
+		c.AbortWithStatus(401)
+		return
+	} else {
+		c.Status(200)
+	}
+
+}
+
 func login(c *gin.Context) {
+	cookieValue, err := c.Cookie("Auth")
+
+	if err == nil && VerifyCookie(cookieValue) == nil {
+		// user already authorized
+		c.Status(200)
+		return
+	}
+
 	c.HTML(http.StatusOK, "login.html", nil)
+}
+
+func logout(c *gin.Context) {
+	cookieValue, err := c.Cookie("Auth")
+
+	if err == nil && VerifyCookie(cookieValue) == nil {
+		cookie := GetCookieByValue(cookieValue)
+		err := DeleteCookie(cookieValue)
+
+		if err != nil || cookie == nil {
+			c.AbortWithError(http.StatusInternalServerError, errors.New("could not delete user cookie from database"))
+			return
+		} else {
+			http.SetCookie(c.Writer, &http.Cookie{
+				Name:    cookie.Name,
+				Value:   cookie.Value,
+				Expires: time.Now(),
+				Domain:  cookie.Domain,
+			})
+
+			c.String(http.StatusOK, "user successfully logged out")
+			return
+		}
+	} else {
+		c.AbortWithError(http.StatusUnauthorized, errors.New("user not logged in"))
+	}
 }
 
 func processLoginForm(c *gin.Context) {

@@ -85,5 +85,117 @@ func CreateCookie(cookie *Cookie) error {
 		// Persist bytes to users bucket.
 		return bucket.Put([]byte(cookie.Value), buffer)
 	})
+}
 
+func GetCookies() []Cookie {
+	db := initDatabase()
+	defer db.Close()
+
+	var cookies []Cookie
+
+	_ = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		_ = bucket.ForEach(func(key, value []byte) error {
+			cookie := Cookie{}
+			_ = json.Unmarshal(value, &cookie)
+			cookies = append(cookies, cookie)
+
+			return nil
+		})
+
+		return nil
+	})
+
+	return cookies
+}
+
+// GetCookieByValue Looks up cookie in database and returns the cookie if found. Returns nil if the cookie was not found.
+func GetCookieByValue(cookieValue string) *Cookie {
+	db := initDatabase()
+	defer db.Close()
+
+	var cookie *Cookie = nil
+
+	_ = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		v := bucket.Get([]byte(cookieValue))
+
+		if v == nil {
+			return nil
+		}
+
+		_ = json.Unmarshal(v, &cookie)
+
+		return nil
+	})
+
+	return cookie
+}
+
+func PurgeCookies() {
+	db := initDatabase()
+	defer db.Close()
+
+	_ = db.Update(func(tx *bolt.Tx) error {
+		return tx.DeleteBucket([]byte("cookies"))
+	})
+}
+
+func DeleteCookie(cookieValue string) error {
+	db := initDatabase()
+	defer db.Close()
+
+	err := db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		return bucket.Delete([]byte(cookieValue))
+	})
+
+	return err
+}
+
+// VerifyCookie :: Returns nil if the cookie is valid
+func VerifyCookie(cookieValue string) error {
+	db := initDatabase()
+	defer db.Close()
+
+	var cookie *Cookie = nil
+
+	_ = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		v := bucket.Get([]byte(cookieValue))
+
+		if v == nil {
+			return nil
+		}
+
+		_ = json.Unmarshal(v, &cookie)
+
+		return nil
+	})
+
+	if cookie == nil || cookie.Expires.Before(time.Now()) {
+		return errors.New("cookie not found or expired")
+	} else {
+		return nil
+	}
 }
