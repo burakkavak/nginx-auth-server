@@ -9,6 +9,7 @@ import (
 type Server struct {
 	ListenAddress string `ini:"listen_address"`
 	ListenPort    int    `ini:"listen_port"`
+	Domain        string `ini:"domain"`
 }
 
 type Config struct {
@@ -21,6 +22,7 @@ var (
 		Server: Server{
 			ListenAddress: "127.0.0.1",
 			ListenPort:    17397,
+			Domain:        "",
 		},
 	}
 )
@@ -57,4 +59,9 @@ func GetListenAddress() string {
 func GetListenPort() int {
 	parse()
 	return config.ListenPort
+}
+
+func GetDomain() string {
+	parse()
+	return config.Domain
 }

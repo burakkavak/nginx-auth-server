@@ -6,20 +6,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"strings"
-	"time"
 )
 
 const (
-	bcryptCost     = bcrypt.MinCost
-	lowerCharSet   = "abcdedfghijklmnopqrst"
-	upperCharSet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	specialCharSet = "!@#$%&*"
-	numberSet      = "0123456789"
-	allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+	bcryptCost = bcrypt.MinCost
 )
 
 func GeneratePassword(passwordLength, minSpecialChar, minNum, minUpperCase int) string {
-	rand.Seed(time.Now().UTC().UnixNano())
+	const (
+		lowerCharSet   = "abcdedfghijklmnopqrst"
+		upperCharSet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		specialCharSet = "!@#$%&*"
+		numberSet      = "0123456789"
+		allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+	)
 
 	var password strings.Builder
 

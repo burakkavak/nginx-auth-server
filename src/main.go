@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/crypto/bcrypt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var GinMode = gin.DebugMode
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	app := &cli.App{
 		EnableBashCompletion: true,
 		Commands: []*cli.Command{
@@ -73,6 +78,19 @@ func main() {
 							return nil
 						},
 					},
+					{
+						Name:    "list",
+						Aliases: []string{"l"},
+						Usage:   "list all users",
+						Action: func(cCtx *cli.Context) error {
+							users := GetUsers()
+
+							fmt.Printf("the database contains %d users\n", len(users))
+							fmt.Println(users)
+
+							return nil
+						},
+					},
 				},
 			},
 		},
@@ -91,6 +109,7 @@ func runGin(daemonMode bool) {
 	router.Static("/css", "public/css")
 
 	router.GET("/login", login)
+	router.POST("/login", processLoginForm)
 
 	address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
 
@@ -146,4 +165,36 @@ func removeUser(username string) {
 
 func login(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", nil)
+}
+
+func processLoginForm(c *gin.Context) {
+	username := c.PostForm("inputUsername")
+	password := c.PostForm("inputPassword")
+
+	user := GetUserByUsername(username)
+
+	if user == nil {
+		c.AbortWithStatus(401)
+	} else {
+		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
+			c.AbortWithStatus(401)
+		} else {
+			cookie := GenerateAuthCookie(user.Username)
+			err := CreateCookie(&cookie)
+
+			if err != nil {
+				log.Println(err)
+				c.AbortWithStatus(500)
+			} else {
+				http.SetCookie(c.Writer, &http.Cookie{
+					Name:    cookie.Name,
+					Value:   cookie.Value,
+					Expires: cookie.Expires,
+					Domain:  cookie.Domain,
+				})
+
+				// todo: redirect
+			}
+		}
+	}
 }
