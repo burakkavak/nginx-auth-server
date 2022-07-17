@@ -150,7 +150,7 @@ func runGin() {
 	router := gin.Default()
 	templates, _ := template.ParseFS(templateFiles, "templates/*.html")
 	router.SetHTMLTemplate(templates)
-	router.StaticFS("/static", http.FS(staticFiles))
+	router.StaticFS("/nginx-auth-server-static", http.FS(staticFiles))
 
 	router.GET("/auth", authenticate)
 	router.GET("/login", login)
