@@ -298,8 +298,6 @@ func processLoginForm(c *gin.Context) {
 					Expires: cookie.Expires,
 					Domain:  cookie.Domain,
 				})
-
-				c.Redirect(303, c.GetHeader("Referer"))
 			}
 		}
 	}

@@ -7,19 +7,13 @@ forms.forEach((form) => {
     console.error("fatal error: could not find submit button for form. define a button with the class 'submit-button' inside form");
   }
 
-  // register submit event for last button found in form
-  button.addEventListener("click", (event) => onFormSubmit(event));
+  form.addEventListener("submit", (event) => onFormSubmit(event))
 });
 
 function onFormSubmit(event: Event) {
-  let element = <HTMLElement>event.currentTarget;
+  event.preventDefault();
 
-  // traverse parent elements from event target to get corresponding form
-  while (element.tagName !== "FORM") {
-    element = element.parentElement;
-  }
-
-  const form = <HTMLFormElement>element;
+  const form = <HTMLFormElement>event.currentTarget;
 
   if (!form.action) {
     console.error("fatal error: no action defined for this form. cannot parse url for request");
@@ -30,7 +24,10 @@ function onFormSubmit(event: Event) {
     method: "post",
     body: new FormData(form)
   }).then((response) => {
-    // TODO: form validation
-    console.log("respose", response);
+    if (response.ok) {
+      location.reload()
+    } else {
+      // TODO: form validation
+    }
   });
 }
