@@ -35,16 +35,8 @@ func main() {
 			{
 				Name:  "run",
 				Usage: "run application",
-				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:    "daemon",
-						Aliases: []string{"d"},
-						Usage:   "run server in daemon mode",
-					},
-				},
 				Action: func(cCtx *cli.Context) error {
-					runGin(cCtx.Bool("daemon"))
-
+					runGin()
 					return nil
 				},
 			},
@@ -149,7 +141,7 @@ func main() {
 	}
 }
 
-func runGin(daemonMode bool) {
+func runGin() {
 	gin.SetMode(GinMode)
 
 	router := gin.Default()
