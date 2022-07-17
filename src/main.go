@@ -20,7 +20,8 @@ import (
 //go:embed templates
 var templateFiles embed.FS
 
-//go:embed css
+// TODO: only include compiled files (omit *.ts files)
+//go:embed css js
 var staticFiles embed.FS
 
 var GinMode = gin.DebugMode
@@ -221,6 +222,7 @@ func authenticate(c *gin.Context) {
 		return
 	} else {
 		c.Status(200)
+		return
 	}
 
 }
@@ -264,6 +266,14 @@ func logout(c *gin.Context) {
 }
 
 func processLoginForm(c *gin.Context) {
+	cookieValue, err := c.Cookie("Auth")
+
+	if err == nil && VerifyCookie(cookieValue) == nil {
+		// user already authorized
+		c.Status(200)
+		return
+	}
+
 	username := c.PostForm("inputUsername")
 	password := c.PostForm("inputPassword")
 
@@ -289,7 +299,7 @@ func processLoginForm(c *gin.Context) {
 					Domain:  cookie.Domain,
 				})
 
-				// todo: redirect
+				c.Redirect(303, c.GetHeader("Referer"))
 			}
 		}
 	}
