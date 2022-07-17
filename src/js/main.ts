@@ -15,6 +15,15 @@ function onFormSubmit(event: Event) {
 
   const form = <HTMLFormElement>event.currentTarget;
 
+  // validate form before sending POST request
+  if (form.classList.contains("needs-validation")) {
+    form.classList.add('was-validated')
+
+    if (!form.checkValidity()) {
+      return;
+    }
+  }
+
   if (!form.action) {
     console.error("fatal error: no action defined for this form. cannot parse url for request");
     return;
