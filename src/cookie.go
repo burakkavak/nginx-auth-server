@@ -57,7 +57,7 @@ func GenerateAuthCookie(username string) Cookie {
 	})
 
 	return Cookie{
-		Name:     "Auth",
+		Name:     "Nginx-Auth-Server-Token",
 		Value:    string(inRune),
 		Expires:  time.Now().AddDate(0, 0, 7),
 		Domain:   GetDomain(),

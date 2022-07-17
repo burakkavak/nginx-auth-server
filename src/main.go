@@ -210,7 +210,7 @@ func removeUser(username string) {
 }
 
 func authenticate(c *gin.Context) {
-	cookieValue, err := c.Cookie("Auth")
+	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
 	if err != nil || VerifyCookie(cookieValue) != nil {
 		c.AbortWithStatus(401)
@@ -223,7 +223,7 @@ func authenticate(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	cookieValue, err := c.Cookie("Auth")
+	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
 	if err == nil && VerifyCookie(cookieValue) == nil {
 		// user already authorized
@@ -235,7 +235,7 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	cookieValue, err := c.Cookie("Auth")
+	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
 	if err == nil && VerifyCookie(cookieValue) == nil {
 		cookie := GetCookieByValue(cookieValue)
@@ -261,7 +261,7 @@ func logout(c *gin.Context) {
 }
 
 func processLoginForm(c *gin.Context) {
-	cookieValue, err := c.Cookie("Auth")
+	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
 	if err == nil && VerifyCookie(cookieValue) == nil {
 		// user already authorized
