@@ -206,7 +206,7 @@ func addUser(username string, password string, otp bool) {
 	}
 
 	if password == "" {
-		generatedPassword := GeneratePassword(8, 0, 1, 1)
+		generatedPassword := GeneratePassword(8, 1, 1)
 
 		fmt.Printf("no password given, generated password for user '%s': '%s'\n", username, generatedPassword)
 
@@ -333,9 +333,9 @@ func logout(c *gin.Context) {
 }
 
 func processLoginForm(c *gin.Context) {
-	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	requestCookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err == nil && VerifyCookie(cookieValue) == nil {
+	if err == nil && VerifyCookie(requestCookieValue) == nil {
 		// user already authorized
 		c.Status(200)
 		return
@@ -367,13 +367,18 @@ func processLoginForm(c *gin.Context) {
 				}
 			}
 
-			cookie := GenerateAuthCookie(user.Username)
-			err := CreateCookie(&cookie)
+			cookie := Cookie{
+				Name:     "Nginx-Auth-Server-Token",
+				Value:    GeneratePassword(72, 10, 30),
+				Expires:  time.Now().AddDate(0, 0, 7),
+				Domain:   GetDomain(),
+				Username: username,
+			}
+
+			err = SaveCookie(cookie)
 
 			if err != nil {
-				log.Println(err)
-				c.AbortWithStatus(500)
-				return
+				log.Fatalf("error while trying to save the cookie to the database: %s", err)
 			}
 
 			http.SetCookie(c.Writer, &http.Cookie{

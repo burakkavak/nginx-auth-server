@@ -12,22 +12,15 @@ const (
 	bcryptCost = bcrypt.MinCost
 )
 
-func GeneratePassword(passwordLength, minSpecialChar, minNum, minUpperCase int) string {
+func GeneratePassword(passwordLength, minNum, minUpperCase int) string {
 	const (
-		lowerCharSet   = "abcdedfghijklmnopqrst"
-		upperCharSet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		specialCharSet = "!@#$%&*"
-		numberSet      = "0123456789"
-		allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+		lowerCharSet = "abcdedfghijklmnopqrst"
+		upperCharSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		numberSet    = "0123456789"
+		allCharSet   = lowerCharSet + upperCharSet + numberSet
 	)
 
 	var password strings.Builder
-
-	// Set special character
-	for i := 0; i < minSpecialChar; i++ {
-		random := rand.Intn(len(specialCharSet))
-		password.WriteString(string(specialCharSet[random]))
-	}
 
 	// Set numeric
 	for i := 0; i < minNum; i++ {
@@ -41,7 +34,7 @@ func GeneratePassword(passwordLength, minSpecialChar, minNum, minUpperCase int) 
 		password.WriteString(string(upperCharSet[random]))
 	}
 
-	remainingLength := passwordLength - minSpecialChar - minNum - minUpperCase
+	remainingLength := passwordLength - minNum - minUpperCase
 	for i := 0; i < remainingLength; i++ {
 		random := rand.Intn(len(allCharSet))
 		password.WriteString(string(allCharSet[random]))
