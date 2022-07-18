@@ -34,8 +34,14 @@ func main() {
 	app := &cli.App{
 		Name:                 "nginx-auth-server",
 		Usage:                "simple authentication server designed to be used in conjunction with nginx 'http_auth_request_module'. Written in Go.",
-		Version:              "0.0.1",
+		Version:              "0.0.2",
 		EnableBashCompletion: true,
+		Authors: []*cli.Author{
+			&cli.Author{
+				Name:  "Burak Kavak",
+				Email: "burak@kavak.dev",
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:  "run",
