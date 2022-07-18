@@ -98,7 +98,12 @@ func main() {
 							users := GetUsers()
 
 							fmt.Printf("the database contains %d users\n", len(users))
-							fmt.Println(users)
+
+							if len(users) != 0 {
+								usersJson, _ := json.MarshalIndent(users, "", "  ")
+
+								fmt.Println(string(usersJson))
+							}
 
 							return nil
 						},
