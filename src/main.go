@@ -140,7 +140,7 @@ func main() {
 						Action: func(cCtx *cli.Context) error {
 							PurgeCookies()
 
-							fmt.Printf("deleted all cookies from database")
+							fmt.Printf("deleted all cookies from database\n")
 
 							return nil
 						},
@@ -250,7 +250,7 @@ func removeUser(username string) {
 	if err != nil {
 		log.Fatalf("could not remove user from database: %s", err)
 	} else {
-		fmt.Printf("user with username '%s' has been removed", username)
+		fmt.Printf("user with username '%s' has been removed\n", username)
 	}
 }
 
