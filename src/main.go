@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"time"
 )
@@ -208,6 +209,16 @@ func addUser(username string, password string, otp bool) {
 			}
 
 			fmt.Printf("TOTP secret key for user '%s': '%s'\n", username, otpKey.Secret())
+
+			output, err := exec.Command("sh", "-c", fmt.Sprintf("qrencode -t UTF8 '%s'", otpKey.URL())).Output()
+
+			fmt.Printf("TOTP URL for user '%s': '%s'\n", username, otpKey.URL())
+
+			if err != nil {
+				fmt.Println("install 'qrencode' library to display a QR code.")
+			} else {
+				fmt.Println(string(output))
+			}
 
 			encryptedOtpSecret = Encrypt([]byte(otpKey.Secret()), password)
 		}
