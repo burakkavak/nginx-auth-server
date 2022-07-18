@@ -19,6 +19,8 @@ type Cookie struct {
 	Expires  time.Time `json:"expires"` // example: 'Wed, 21 Oct 2015 07:28:00 GMT'
 	Domain   string    `json:"domain"`
 	Username string    `json:"username"`
+	HttpOnly bool      `json:"httpOnly"`
+	Secure   bool      `json:"secure"`
 }
 
 func SaveCookie(cookie Cookie) error {

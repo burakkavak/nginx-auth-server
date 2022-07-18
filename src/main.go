@@ -373,6 +373,8 @@ func processLoginForm(c *gin.Context) {
 				Expires:  time.Now().AddDate(0, 0, 7),
 				Domain:   GetDomain(),
 				Username: username,
+				HttpOnly: true,
+				Secure:   true,
 			}
 
 			err = SaveCookie(cookie)
@@ -382,10 +384,12 @@ func processLoginForm(c *gin.Context) {
 			}
 
 			http.SetCookie(c.Writer, &http.Cookie{
-				Name:    cookie.Name,
-				Value:   cookie.Value,
-				Expires: cookie.Expires,
-				Domain:  cookie.Domain,
+				Name:     cookie.Name,
+				Value:    cookie.Value,
+				Expires:  cookie.Expires,
+				Domain:   cookie.Domain,
+				HttpOnly: true,
+				Secure:   true,
 			})
 
 			c.Status(200)
