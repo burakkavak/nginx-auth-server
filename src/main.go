@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pquerna/otp/totp"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/crypto/bcrypt"
 	"html/template"
@@ -62,9 +63,13 @@ func main() {
 								Name:    "password",
 								Aliases: []string{"p"},
 							},
+							&cli.BoolFlag{
+								Name:    "otp",
+								Aliases: []string{"o"},
+							},
 						},
 						Action: func(cCtx *cli.Context) error {
-							addUser(cCtx.String("username"), cCtx.String("password"))
+							addUser(cCtx.String("username"), cCtx.String("password"), cCtx.Bool("otp"))
 							return nil
 						},
 					},
@@ -166,9 +171,13 @@ func runGin() {
 	}
 }
 
-func addUser(username string, password string) {
+func addUser(username string, password string, otp bool) {
 	if username == "" {
-		log.Fatalln("invalid username")
+		log.Fatalf("invalid username")
+	}
+
+	if GetUserByUsername(username) != nil {
+		log.Fatalf("user with username %s already exists", username)
 	}
 
 	if password == "" {
@@ -176,7 +185,7 @@ func addUser(username string, password string) {
 
 		fmt.Printf("no password given, generated password for user '%s': '%s'\n", username, generatedPassword)
 
-		addUser(username, generatedPassword)
+		addUser(username, generatedPassword, otp)
 	} else if err := CheckPasswordRequirements(password); err != nil {
 		log.Fatalf("password does not meet minimum requirements: %s", err)
 	} else {
@@ -186,15 +195,35 @@ func addUser(username string, password string) {
 			log.Fatalf("could not salt and hash password: %s", err)
 		}
 
+		var encryptedOtpSecret []byte
+
+		if otp {
+			otpKey, err := totp.Generate(totp.GenerateOpts{
+				Issuer:      GetDomain(),
+				AccountName: username,
+			})
+
+			if err != nil {
+				log.Fatalf("could not create TOTP: %s", err)
+			}
+
+			fmt.Printf("TOTP secret key for user '%s': '%s'\n", username, otpKey.Secret())
+
+			encryptedOtpSecret = Encrypt([]byte(otpKey.Secret()), password)
+		}
+
 		user := User{
-			Username: username,
-			Password: hash,
+			Username:  username,
+			Password:  hash,
+			OtpSecret: encryptedOtpSecret,
 		}
 
 		err = CreateUser(&user)
 
 		if err != nil {
 			log.Fatalf("could not save user to database: %s", err)
+		} else {
+			fmt.Printf("user with username '%s' successfully created\n", username)
 		}
 	}
 }
@@ -276,24 +305,42 @@ func processLoginForm(c *gin.Context) {
 
 	if user == nil {
 		c.AbortWithStatus(401)
+		return
 	} else {
 		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 			c.AbortWithStatus(401)
+			return
 		} else {
+			if len(user.OtpSecret) != 0 {
+				token := c.PostForm("inputTotp")
+
+				secret := Decrypt(user.OtpSecret, password)
+
+				tokenIsValid := totp.Validate(token, string(secret))
+
+				if !tokenIsValid {
+					c.AbortWithStatusJSON(401, gin.H{"error": "invalid TOTP"})
+					return
+				}
+			}
+
 			cookie := GenerateAuthCookie(user.Username)
 			err := CreateCookie(&cookie)
 
 			if err != nil {
 				log.Println(err)
 				c.AbortWithStatus(500)
-			} else {
-				http.SetCookie(c.Writer, &http.Cookie{
-					Name:    cookie.Name,
-					Value:   cookie.Value,
-					Expires: cookie.Expires,
-					Domain:  cookie.Domain,
-				})
+				return
 			}
+
+			http.SetCookie(c.Writer, &http.Cookie{
+				Name:    cookie.Name,
+				Value:   cookie.Value,
+				Expires: cookie.Expires,
+				Domain:  cookie.Domain,
+			})
+
+			c.Status(200)
 		}
 	}
 }

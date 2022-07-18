@@ -7,8 +7,9 @@ import (
 )
 
 type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"` // Password :: salted & hashed
+	Username  string `json:"username"`
+	Password  string `json:"password"`  // Password :: salted & hashed
+	OtpSecret []byte `json:"otpSecret"` // OtpSecret :: encrypted OTP secret key
 }
 
 func GetUsers() []User {

@@ -22,7 +22,7 @@ var (
 		Server: Server{
 			ListenAddress: "127.0.0.1",
 			ListenPort:    17397,
-			Domain:        "",
+			Domain:        "localhost",
 		},
 	}
 )

@@ -2,22 +2,24 @@ class LoginForm {
   form: HTMLFormElement;
   usernameInput: HTMLInputElement;
   passwordInput: HTMLInputElement;
+  totpInput: HTMLInputElement;
   submitButton: HTMLButtonElement;
 
   constructor(form: HTMLFormElement) {
     this.form = form;
     this.usernameInput = form.querySelector("#inputUsername");
     this.passwordInput = form.querySelector("#inputPassword");
+    this.totpInput = form.querySelector("#inputTotp");
     this.submitButton = form.querySelector('button[type="submit"]');
 
-    if (!this.usernameInput || !this.passwordInput) {
-      throw new Error("error: username or password input is missing");
+    if (!this.usernameInput || !this.passwordInput || !this.totpInput || !this.submitButton) {
+      throw new Error("error: username input, password input, TOTP input or submit button is missing");
     }
 
     form.addEventListener("submit", (event) => this.onFormSubmit(event))
   }
 
-  onFormSubmit(event: Event) {
+  async onFormSubmit(event: Event) {
     event.preventDefault();
 
     const form = <HTMLFormElement>event.currentTarget;
@@ -47,40 +49,60 @@ class LoginForm {
 
     this.toggleFormState();
 
-    fetch(form.action, {
-      method: "post",
-      body: formData
-    }).then((response) => {
+    try {
+      const response = await fetch(form.action, {
+        method: "post",
+        body: formData
+      });
+
       if (response.ok) {
         location.reload()
       } else {
         this.resetSubmitButton(originalButtonHTML);
         this.toggleFormState();
 
-        this.usernameInput.setCustomValidity("Invalid credentials.");
-        this.passwordInput.setCustomValidity("Invalid credentials.");
-        this.submitButton.disabled = true;
+        const responseText = await response.text();
 
-        // clear error messages after value changes on either input
-        this.usernameInput.addEventListener("input", () => {
-          this.usernameInput.setCustomValidity("");
-          this.passwordInput.setCustomValidity("");
-          this.submitButton.disabled = false;
-        }, { once: true });
+        if (responseText.includes("TOTP")) {
+          this.usernameInput.readOnly = true;
+          this.passwordInput.readOnly = true;
 
-        this.passwordInput.addEventListener("input", () => {
-          this.usernameInput.setCustomValidity("");
-          this.passwordInput.setCustomValidity("");
-          this.submitButton.disabled = false;
-        }, { once: true });
+          this.totpInput.setCustomValidity("Invalid TOTP.");
+          this.submitButton.disabled = true;
+
+          // clear error message after value change on TOTP input
+          this.totpInput.addEventListener("input", () => {
+            this.totpInput.setCustomValidity("");
+            this.submitButton.disabled = false;
+          }, {once: true});
+
+          this.totpInput.parentElement.classList.remove("d-none");
+        } else {
+          this.usernameInput.setCustomValidity("Invalid credentials.");
+          this.passwordInput.setCustomValidity("Invalid credentials.");
+          this.submitButton.disabled = true;
+
+          // clear error messages after value changes on either input
+          this.usernameInput.addEventListener("input", () => {
+            this.usernameInput.setCustomValidity("");
+            this.passwordInput.setCustomValidity("");
+            this.submitButton.disabled = false;
+          }, {once: true});
+
+          this.passwordInput.addEventListener("input", () => {
+            this.usernameInput.setCustomValidity("");
+            this.passwordInput.setCustomValidity("");
+            this.submitButton.disabled = false;
+          }, {once: true});
+        }
       }
-    }).catch((error) => {
+    } catch (error) {
       this.resetSubmitButton(originalButtonHTML);
       this.toggleFormState();
       console.error(error);
 
       // TODO: better error-handling when the server is offline for some reason
-    });
+    }
   }
 
   resetSubmitButton(originalHtml: string): void {
@@ -92,8 +114,8 @@ class LoginForm {
    * Disables/enables form, inputs and buttons
    */
   toggleFormState(): void {
-    this.usernameInput.disabled = !this.usernameInput.disabled
-    this.passwordInput.disabled = !this.passwordInput.disabled
+    this.usernameInput.readOnly = !this.usernameInput.readOnly
+    this.passwordInput.readOnly = !this.passwordInput.readOnly
     this.submitButton.disabled = !this.submitButton.disabled
   }
 }

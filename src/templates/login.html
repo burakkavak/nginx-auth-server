@@ -20,12 +20,16 @@
             <div class="col-12 d-flex justify-content-center align-items-md-center">
                 <form class="w-100 login-form needs-validation" action="/login" method="post" novalidate>
                     <div class="mb-3 input-group">
-                        <div class="input-group-text"><i class="fa-solid fa-at"></i></div>
+                        <div class="input-group-text"><i class="fa-solid fa-at fa-fw"></i></div>
                         <input type="text" class="form-control" id="inputUsername" name="inputUsername" placeholder="Username" required>
                     </div>
                     <div class="mb-3 input-group">
-                        <div class="input-group-text"><i class="fa-solid fa-key"></i></div>
+                        <div class="input-group-text"><i class="fa-solid fa-key fa-fw"></i></div>
                         <input type="password" class="form-control" id="inputPassword" name="inputPassword" placeholder="Password" required minlength="6">
+                    </div>
+                    <div class="mb-3 input-group d-none">
+                        <div class="input-group-text"><i class="fa-solid fa-lock fa-fw"></i></div>
+                        <input type="text" class="form-control" id="inputTotp" pattern="^\d{6,6}$" name="inputTotp" placeholder="TOTP" maxlength="6">
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
