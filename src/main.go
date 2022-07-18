@@ -137,10 +137,29 @@ func main() {
 						Name:    "purge",
 						Aliases: []string{"p"},
 						Usage:   "remove all cookies",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "username",
+								Aliases: []string{"u"},
+								Usage:   "remove all cookies for user with given username",
+							},
+						},
 						Action: func(cCtx *cli.Context) error {
-							PurgeCookies()
+							username := cCtx.String("username")
 
-							fmt.Printf("deleted all cookies from database\n")
+							var err error = nil
+
+							if username != "" {
+								err = DeleteCookiesByUsername(username)
+							} else {
+								err = PurgeCookies()
+							}
+
+							if err != nil {
+								log.Fatalf("error: could not delete cookies: %s", err)
+							} else {
+								fmt.Printf("deleted all cookies from database\n")
+							}
 
 							return nil
 						},
@@ -251,6 +270,14 @@ func removeUser(username string) {
 		log.Fatalf("could not remove user from database: %s", err)
 	} else {
 		fmt.Printf("user with username '%s' has been removed\n", username)
+	}
+
+	err = DeleteCookiesByUsername(username)
+
+	if err != nil {
+		log.Fatalf("could not remove user associated cookies from database for username '%s': %s\n", username, err)
+	} else {
+		fmt.Printf("user associated cookies for username '%s' have been removed\n", username)
 	}
 }
 

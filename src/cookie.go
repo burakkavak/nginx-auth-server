@@ -142,11 +142,11 @@ func GetCookieByValue(cookieValue string) *Cookie {
 	return cookie
 }
 
-func PurgeCookies() {
+func PurgeCookies() error {
 	db := initDatabase()
 	defer db.Close()
 
-	_ = db.Update(func(tx *bolt.Tx) error {
+	return db.Update(func(tx *bolt.Tx) error {
 		return tx.DeleteBucket([]byte("cookies"))
 	})
 }
@@ -166,6 +166,31 @@ func DeleteCookie(cookieValue string) error {
 	})
 
 	return err
+}
+
+// DeleteCookiesByUsername :: Delete all cookies for a given username
+func DeleteCookiesByUsername(username string) error {
+	db := initDatabase()
+	defer db.Close()
+
+	return db.Batch(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		return bucket.ForEach(func(key, value []byte) error {
+			cookie := Cookie{}
+			_ = json.Unmarshal(value, &cookie)
+
+			if cookie.Username == username {
+				return bucket.Delete([]byte(cookie.Value))
+			} else {
+				return nil
+			}
+		})
+	})
 }
 
 // VerifyCookie :: Returns nil if the cookie is valid
