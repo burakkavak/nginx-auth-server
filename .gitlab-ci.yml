@@ -1,0 +1,63 @@
+stages:
+  - build
+  - upload
+  - release
+
+variables:
+  PACKAGE_VERSION: "0.0.2"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}"
+  PROJECT_NAME: "nginx-auth-server"
+  LINUX_386_BINARY: "${PROJECT_NAME}-linux-i386"
+  LINUX_AMD64_BINARY: "${PROJECT_NAME}-linux-amd64"
+  LINUX_ARM_BINARY: "${PROJECT_NAME}-linux-arm"
+  LINUX_ARM64_BINARY: "${PROJECT_NAME}-linux-arm64"
+  WINDOWS_AMD64_BINARY: "${PROJECT_NAME}-windows-amd64.exe"
+
+compile:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - mkdir -p ./bin
+    - "GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags prod ./src"
+    - "GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags prod ./src"
+    - "GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags prod ./src"
+    - "GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags prod ./src"
+    - "GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags prod ./src"
+    - "tar cfz ./bin/${LINUX_ARM_BINARY}.tar.gz ./bin/${LINUX_ARM_BINARY}"
+    - "tar cfz ./bin/${LINUX_ARM64_BINARY}.tar.gz ./bin/${LINUX_ARM64_BINARY}"
+    - "tar cfz ./bin/${LINUX_386_BINARY}.tar.gz ./bin/${LINUX_386_BINARY}"
+    - "tar cfz ./bin/${LINUX_AMD64_BINARY}.tar.gz ./bin/${LINUX_AMD64_BINARY}"
+    - "tar cfz ./bin/${WINDOWS_AMD64_BINARY}.tar.gz ./bin/${WINDOWS_AMD64_BINARY}"
+  artifacts:
+    paths:
+      - bin
+
+upload:
+  stage: upload
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/${LINUX_ARM_BINARY}.tar.gz "${PACKAGE_REGISTRY_URL}/${LINUX_ARM_BINARY}.tar.gz"
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/${LINUX_ARM64_BINARY}.tar.gz "${PACKAGE_REGISTRY_URL}/${LINUX_ARM64_BINARY}.tar.gz"
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/${LINUX_386_BINARY}.tar.gz "${PACKAGE_REGISTRY_URL}/${LINUX_386_BINARY}.tar.gz"
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/${LINUX_AMD64_BINARY}.tar.gz "${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}.tar.gz"
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file bin/${WINDOWS_AMD64_BINARY}.tar.gz "${PACKAGE_REGISTRY_URL}/${WINDOWS_AMD64_BINARY}.tar.gz"
+
+release_job:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"${LINUX_ARM_BINARY}.tar.gz\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_ARM_BINARY}.tar.gz\"}" \
+        --assets-link "{\"name\":\"${LINUX_ARM64_BINARY}.tar.gz\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_ARM64_BINARY}.tar.gz\"}" \
+        --assets-link "{\"name\":\"${LINUX_386_BINARY}.tar.gz\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_386_BINARY}.tar.gz\"}" \
+        --assets-link "{\"name\":\"${LINUX_AMD64_BINARY}.tar.gz\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}.tar.gz\"}" \
+        --assets-link "{\"name\":\"${WINDOWS_AMD64_BINARY}.tar.gz\",\"url\":\"${PACKAGE_REGISTRY_URL}/${WINDOWS_AMD64_BINARY}.tar.gz\"}"
