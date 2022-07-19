@@ -195,6 +195,8 @@ func runGin() {
 
 	address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
 
+	fmt.Printf("listening and serving HTTP request on %s\n", address)
+
 	err := router.Run(address)
 
 	if err != nil {
