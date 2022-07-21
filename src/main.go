@@ -125,8 +125,22 @@ func main() {
 						Name:    "list",
 						Aliases: []string{"l"},
 						Usage:   "list all cookies",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "username",
+								Aliases: []string{"u"},
+								Usage:   "filter cookies by username",
+							},
+						},
 						Action: func(cCtx *cli.Context) error {
-							cookies := GetCookies()
+							username := cCtx.String("username")
+							var cookies []Cookie
+
+							if username != "" {
+								cookies = GetCookiesByUsername(username)
+							} else {
+								cookies = GetCookies()
+							}
 
 							fmt.Printf("the database contains %d cookies\n", len(cookies))
 
@@ -355,8 +369,13 @@ func processLoginForm(c *gin.Context) {
 	user := GetUserByUsername(username)
 
 	if user == nil {
-		c.AbortWithStatus(401)
-		return
+		if ldapAuthenticate(username, password) {
+			createAndSetAuthCookie(c, username)
+			c.Status(200)
+		} else {
+			c.AbortWithStatus(401)
+			return
+		}
 	} else {
 		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 			c.AbortWithStatus(401)
@@ -375,32 +394,35 @@ func processLoginForm(c *gin.Context) {
 				}
 			}
 
-			cookie := Cookie{
-				Name:     "Nginx-Auth-Server-Token",
-				Value:    GeneratePassword(72, 10, 30),
-				Expires:  time.Now().AddDate(0, 0, 7),
-				Domain:   GetDomain(),
-				Username: username,
-				HttpOnly: true,
-				Secure:   true,
-			}
-
-			err = SaveCookie(cookie)
-
-			if err != nil {
-				log.Fatalf("error while trying to save the cookie to the database: %s", err)
-			}
-
-			http.SetCookie(c.Writer, &http.Cookie{
-				Name:     cookie.Name,
-				Value:    cookie.Value,
-				Expires:  cookie.Expires,
-				Domain:   cookie.Domain,
-				HttpOnly: true,
-				Secure:   true,
-			})
-
+			createAndSetAuthCookie(c, user.Username)
 			c.Status(200)
 		}
 	}
+}
+
+func createAndSetAuthCookie(c *gin.Context, username string) {
+	cookie := Cookie{
+		Name:     "Nginx-Auth-Server-Token",
+		Value:    GeneratePassword(72, 10, 30),
+		Expires:  time.Now().AddDate(0, 0, 7),
+		Domain:   GetDomain(),
+		Username: username,
+		HttpOnly: true,
+		Secure:   true,
+	}
+
+	err := SaveCookie(cookie)
+
+	if err != nil {
+		log.Fatalf("error while trying to save the cookie to the database: %s", err)
+	}
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     cookie.Name,
+		Value:    cookie.Value,
+		Expires:  cookie.Expires,
+		Domain:   cookie.Domain,
+		HttpOnly: true,
+		Secure:   true,
+	})
 }

@@ -12,8 +12,17 @@ type Server struct {
 	Domain        string `ini:"domain"`
 }
 
+// LDAP :: [LDAP]-Section of .ini
+type LDAP struct {
+	Enabled            bool   `ini:"enabled"`
+	URL                string `ini:"url"`
+	OrganizationalUnit string `ini:"organizational_unit"`
+	DomainComponents   string `ini:"domain_components"`
+}
+
 type Config struct {
 	Server
+	LDAP
 }
 
 var (
@@ -23,6 +32,12 @@ var (
 			ListenAddress: "127.0.0.1",
 			ListenPort:    17397,
 			Domain:        "localhost",
+		},
+		LDAP: LDAP{
+			Enabled:            false,
+			URL:                "",
+			OrganizationalUnit: "users",
+			DomainComponents:   "",
 		},
 	}
 )
@@ -64,4 +79,24 @@ func GetListenPort() int {
 func GetDomain() string {
 	parse()
 	return config.Domain
+}
+
+func GetLDAPEnabled() bool {
+	parse()
+	return config.LDAP.Enabled
+}
+
+func GetLDAPUrl() string {
+	parse()
+	return config.LDAP.URL
+}
+
+func GetLDAPOrganizationalUnit() string {
+	parse()
+	return config.LDAP.OrganizationalUnit
+}
+
+func GetLDAPDomainComponents() string {
+	parse()
+	return config.LDAP.DomainComponents
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -24,10 +23,6 @@ type Cookie struct {
 }
 
 func SaveCookie(cookie Cookie) error {
-	if GetUserByUsername(cookie.Username) == nil {
-		return errors.New(fmt.Sprintf("user with username '%s' does not exist", cookie.Username))
-	}
-
 	saltedCookieValue, err := GenerateHash(cookie.Value)
 
 	if err != nil {
@@ -70,6 +65,37 @@ func GetCookies() []Cookie {
 			cookie := Cookie{}
 			_ = json.Unmarshal(value, &cookie)
 			cookies = append(cookies, cookie)
+
+			return nil
+		})
+
+		return nil
+	})
+
+	return cookies
+}
+
+// GetCookiesByUsername Looks up cookies specific to a user in database and returns the cookies.
+func GetCookiesByUsername(username string) []Cookie {
+	db := initDatabase()
+	defer db.Close()
+
+	var cookies []Cookie
+
+	_ = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("cookies"))
+
+		if bucket == nil {
+			return nil
+		}
+
+		_ = bucket.ForEach(func(key, value []byte) error {
+			cookie := Cookie{}
+			_ = json.Unmarshal(value, &cookie)
+
+			if cookie.Username == username {
+				cookies = append(cookies, cookie)
+			}
 
 			return nil
 		})
