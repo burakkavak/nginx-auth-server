@@ -24,7 +24,6 @@ import (
 //go:embed templates
 var templateFiles embed.FS
 
-// TODO: only include compiled files (omit *.ts files)
 //go:embed css js/app.bundle.js
 var staticFiles embed.FS
 
