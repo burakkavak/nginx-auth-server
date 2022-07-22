@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.0.4] - tbd
+## [0.0.4] - 2022-07-22
 - added /whoami API endpoint
 
 ## [0.0.3] - 2022-07-22
