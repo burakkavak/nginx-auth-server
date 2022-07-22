@@ -50,6 +50,7 @@ func runGin() {
 	router.GET("/login", login)
 	router.POST("/login", processLoginForm)
 	router.GET("/logout", logout)
+	router.GET("/whoami", whoami)
 
 	address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
 
@@ -323,4 +324,19 @@ func createAndSetAuthCookie(c *gin.Context, username string) {
 		HttpOnly: cookie.HttpOnly,
 		Secure:   cookie.Secure,
 	})
+}
+
+func whoami(c *gin.Context) {
+	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+
+	if err != nil || VerifyCookie(cookieValue) != nil {
+		c.AbortWithStatus(401)
+		return
+	} else {
+		cookie := GetCookieByValue(cookieValue)
+
+		c.JSON(200, gin.H{"username": cookie.Username})
+		return
+	}
+
 }
