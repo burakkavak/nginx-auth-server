@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"log"
+
+	"github.com/urfave/cli/v2"
 )
 
 var app = &cli.App{
@@ -13,7 +14,7 @@ var app = &cli.App{
 	Version:              "0.0.3",
 	EnableBashCompletion: true,
 	Authors: []*cli.Author{
-		&cli.Author{
+		{
 			Name:  "Burak Kavak",
 			Email: "burak@kavak.dev",
 		},
