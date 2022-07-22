@@ -34,13 +34,13 @@ $ wget --content-disposition https://raw.githubusercontent.com/burakkavak/nginx-
 
 Run the server:
 ```shell
-$ ./nginx-server-auth run
+$ ./nginx-auth-server run
 ```
 
 For user management (adding/removing users) refer to the CLI usage information:
 ```shell
-$ ./nginx-server-auth help
-$ ./nginx-server-auth user add --username foo --password bar --otp
+$ ./nginx-auth-server help
+$ ./nginx-auth-server user add --username foo --password bar --otp
 ```
 
 Reconfigure nginx server:
@@ -90,7 +90,7 @@ server {
     proxy_set_header X-Original-Host $host;
   }
 
-  # these are handled by nginx-server-auth as part of the auth routines
+  # these are handled by nginx-auth-server as part of the auth routines
   location ~ ^/(login|logout|whoami)$ {
     proxy_pass http://localhost:17397;
 
@@ -99,7 +99,7 @@ server {
     proxy_set_header X-Original-Host $host;
   }
 
-  # static nginx-server-auth assets (css, js, ...)
+  # static nginx-auth-server assets (css, js, ...)
   location /nginx-auth-server-static {
     proxy_pass http://localhost:17397/nginx-auth-server-static;
 
@@ -120,8 +120,8 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/nginx-auth-server/build
-ExecStart=/var/www/nginx-auth-server/build/nginx-auth-server run
+WorkingDirectory=/var/www/nginx-auth-server
+ExecStart=/var/www/nginx-auth-server/nginx-auth-server run
 Restart=on-failure
 # Other restart options: always, on-abort, etc
 
