@@ -14,7 +14,7 @@ $(foreach bin,$(REQUIRED_BINS),\
     $(if $(shell command -v $(bin) 2> /dev/null),$(),$(error Error: install '$(bin)')))
 
 compile:
-	tsc
+	# TODO: run webpack / npm install before building
 
 	GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags prod ./src
 	GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags prod ./src

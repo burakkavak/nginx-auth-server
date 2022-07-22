@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    
     <title>Authentication: Login</title>
 
     <!-- Bootstrap -->
@@ -18,7 +18,7 @@
     <div class="container-fluid main-container">
         <div class="row">
             <div class="col-12 d-flex justify-content-center align-items-md-center">
-                <form class="w-100 login-form needs-validation" action="/login" method="post" novalidate>
+                <form class="w-100 login-form needs-validation {{if .recaptchaEnabled}}recaptcha-form{{end}}" action="/login" method="post" novalidate>
                     <div class="mb-3 input-group">
                         <div class="input-group-text"><i class="fa-solid fa-at fa-fw"></i></div>
                         <input type="text" class="form-control" id="inputUsername" name="inputUsername" placeholder="Username" required>
@@ -36,7 +36,9 @@
             </div>
         </div>
     </div>
+    {{if .recaptchaEnabled}}<div id="g-recaptcha" class="g-recaptcha" data-size="invisible" data-sitekey="{{.recaptchaSiteKey}}"></div>{{end}}
 
-    <script src="nginx-auth-server-static/js/main.js"></script>
+    <script src="nginx-auth-server-static/js/app.bundle.js"></script>
+    {{if .recaptchaEnabled}}<script src="https://www.google.com/recaptcha/api.js?sitekey={{.recaptchaSiteKey}}&onload=recaptchaOnLoad&render=explicit" async defer></script>{{end}}
 </body>
 </html>

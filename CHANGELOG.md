@@ -2,7 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [0.0.3] - tbd
-- added LDAP support
+- added LDAP support with [go-ldap/ldap](https://github.com/go-ldap/ldap)
+- added Google reCAPTCHA v2 support for login form
 
 ## [0.0.2] - 2022-07-18
 - added TOTP support with [pquerna/otp](https://github.com/pquerna/otp)

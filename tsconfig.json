@@ -1,10 +1,12 @@
 {
   "include": ["src/js/**/*"],
   "compilerOptions": {
+    "sourceMap": true,
     "target": "ES2015",
     "module": "ES2015",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "nodenext"
   }
 }

@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/pquerna/otp/totp"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -15,13 +15,17 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pquerna/otp/totp"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //go:embed templates
 var templateFiles embed.FS
 
 // TODO: only include compiled files (omit *.ts files)
-//go:embed css js
+//go:embed css js/app.bundle.js
 var staticFiles embed.FS
 
 var GinMode = gin.DebugMode
@@ -165,7 +169,10 @@ func login(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "login.html", nil)
+	c.HTML(http.StatusOK, "login.html", gin.H{
+		"recaptchaEnabled": GetRecaptchaEnabled(),
+		"recaptchaSiteKey": GetRecaptchaSiteKey(),
+	})
 }
 
 func logout(c *gin.Context) {
@@ -194,6 +201,19 @@ func logout(c *gin.Context) {
 	}
 }
 
+type LoginFormData struct {
+	Username       string `json:"inputUsername"`
+	Password       string `json:"inputPassword"`
+	TOTP           string `json:"inputTotp"`
+	RecaptchaToken string `json:"recaptchaToken"`
+}
+
+type RecaptchaResponse struct {
+	Success            bool      `json:"success"`
+	ChallengeTimestamp time.Time `json:"challenge_ts"`
+	Hostname           string    `json:"hostname"`
+}
+
 func processLoginForm(c *gin.Context) {
 	requestCookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
 
@@ -203,28 +223,66 @@ func processLoginForm(c *gin.Context) {
 		return
 	}
 
-	username := c.PostForm("inputUsername")
-	password := c.PostForm("inputPassword")
+	var data LoginFormData
+	_ = c.Bind(&data)
 
-	user := GetUserByUsername(username)
+	if GetRecaptchaEnabled() {
+		if data.RecaptchaToken == "" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bad input for reCAPTCHA token"})
+			return
+		}
+
+		postBody := bytes.NewBuffer([]byte(fmt.Sprintf("secret=%s&response=%s&remoteip=%s", GetRecaptchaSecretKey(), data.RecaptchaToken, c.ClientIP())))
+
+		httpResponse, err := http.Post("https://www.google.com/recaptcha/api/siteverify", "application/x-www-form-urlencoded", postBody)
+
+		if err != nil {
+			c.AbortWithStatusJSON(500, gin.H{"error": "could not verify reCAPTCHA token with Google servers"})
+			return
+		}
+
+		defer httpResponse.Body.Close()
+
+		responseBody, err := ioutil.ReadAll(httpResponse.Body)
+
+		if err != nil {
+			c.AbortWithStatusJSON(500, gin.H{"error": "could not read reCAPTCHA verification response from Google"})
+			return
+		}
+
+		var response RecaptchaResponse
+		err = json.Unmarshal(responseBody, &response)
+
+		if err != nil {
+			c.AbortWithStatusJSON(500, gin.H{"error": "could not unserialize reCAPTCHA verification response from Google"})
+			return
+		}
+
+		if !response.Success {
+			c.AbortWithStatusJSON(500, gin.H{"error": "reCAPTCHA verification unsuccessful"})
+			return
+		}
+	}
+
+	user := GetUserByUsername(data.Username)
 
 	if user == nil {
-		if ldapAuthenticate(username, password) {
-			createAndSetAuthCookie(c, username)
+		if ldapAuthenticate(data.Username, data.Password) {
+			createAndSetAuthCookie(c, data.Username)
 			c.Status(200)
 		} else {
 			c.AbortWithStatus(401)
 			return
 		}
 	} else {
-		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
+		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)) != nil {
 			c.AbortWithStatus(401)
 			return
 		} else {
 			if len(user.OtpSecret) != 0 {
 				token := c.PostForm("inputTotp")
 
-				secret := Decrypt(user.OtpSecret, password)
+				secret := Decrypt(user.OtpSecret, data.Password)
 
 				tokenIsValid := totp.Validate(token, string(secret))
 

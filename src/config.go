@@ -20,9 +20,17 @@ type LDAP struct {
 	DomainComponents   string `ini:"domain_components"`
 }
 
+// Recaptcha :: [Recaptcha]-Section of .ini
+type Recaptcha struct {
+	Enabled   bool   `ini:"enabled"`
+	SiteKey   string `ini:"site_key"`
+	SecretKey string `ini:"secret_key"`
+}
+
 type Config struct {
 	Server
 	LDAP
+	Recaptcha
 }
 
 var (
@@ -38,6 +46,11 @@ var (
 			URL:                "",
 			OrganizationalUnit: "users",
 			DomainComponents:   "",
+		},
+		Recaptcha: Recaptcha{
+			Enabled:   false,
+			SiteKey:   "",
+			SecretKey: "",
 		},
 	}
 )
@@ -99,4 +112,19 @@ func GetLDAPOrganizationalUnit() string {
 func GetLDAPDomainComponents() string {
 	parse()
 	return config.LDAP.DomainComponents
+}
+
+func GetRecaptchaEnabled() bool {
+	parse()
+	return config.Recaptcha.Enabled
+}
+
+func GetRecaptchaSiteKey() string {
+	parse()
+	return config.Recaptcha.SiteKey
+}
+
+func GetRecaptchaSecretKey() string {
+	parse()
+	return config.Recaptcha.SecretKey
 }

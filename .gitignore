@@ -19,3 +19,12 @@ node_modules/
 
 # Database
 nginx-auth-server.db
+
+# IntelliJ IDEA
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# webpack JavaScript bundle
+src/js/app.bundle.js
