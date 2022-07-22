@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-ldap/ldap/v3"
 	"log"
+
+	"github.com/go-ldap/ldap/v3"
 )
 
 // TODO: ldaps not tested yet
@@ -19,7 +20,6 @@ func ldapAuthenticate(username string, password string) bool {
 		err error
 	)
 
-	//l, err = ldap.DialURL(GetLDAPUrl(), ldap.DialWithTLSConfig(&tls.Config{ServerName: "localhost"}))
 	l, err = ldap.DialURL(GetLDAPUrl())
 
 	if err != nil {
