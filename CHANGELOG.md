@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.0.3] - tbd
+## [0.0.3] - 2022-07-22
 - added LDAP support with [go-ldap/ldap](https://github.com/go-ldap/ldap)
 - added Google reCAPTCHA v2 support for login form
 
