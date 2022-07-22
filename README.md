@@ -13,7 +13,7 @@ A lightweight authentication server designed to be used in conjunction with ngin
 
 ## Demo
 
-<video src="https://kavak.dev/assets/nginx-auth-server/demo.webm" width="720" muted autoplay loop></video>
+![demo.gif](https://raw.githubusercontent.com/burakkavak/nginx-auth-server/master/assets/demo.gif)
 
 ## Features
 
