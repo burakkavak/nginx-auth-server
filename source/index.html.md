@@ -1,104 +1,66 @@
 ---
 title: API Reference
 
-language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
-  - python
-  - javascript
-
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
+  - <a href='https://github.com/burakkavak/nginx-auth-server'>nginx-auth-server on GitHub</a>
   - <a href='https://github.com/slatedocs/slate'>Documentation Powered by Slate</a>
-
-includes:
-  - errors
 
 search: true
 
 code_clipboard: true
 
-meta:
-  - name: description
-    content: Documentation for the Kittn API
 ---
 
-# Introduction
+# Command-line interface (CLI)
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+The nginx-auth-server CLI is used for user and cookie management.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
-
-This example API documentation page was created with [Slate](https://github.com/slatedocs/slate). Feel free to edit it and use it as a base for your own API's documentation.
-
-# Authentication
-
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
+## Usage information
 
 ```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here" \
-  -H "Authorization: meowmeowmeow"
+$ nginx-auth-server help
+$ nginx-auth-server --help
 ```
 
-```javascript
-const kittn = require('kittn');
+You can add the *help* argument or the *--help* flag to any command to get usage information for the given command.
 
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
+## Add user
 
 ```shell
-curl "http://example.com/api/kittens" \
-  -H "Authorization: meowmeowmeow"
+$ nginx-auth-server user add --username foo --password foobar --otp
+$ nginx-auth-server u a -u foo -p foobar -o
 ```
 
-```javascript
-const kittn = require('kittn');
+This command will add and persist a user in the database. The command will fail if there is an existing user with the same username. If there is existing cookies related to this username (maybe the user was authenticated through LDAP in the past), the command will also fail. If TOTP is required for this user, the application will attempt to print the TOTP secret QR code in the terminal using the [QRencode](https://github.com/fukuchi/libqrencode) library.
 
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
+### Command flags
+
+Flag           | Meaning
+-------------- | ----------
+-u, --username | Required. Username of the new user.
+-p, --password | Required. Password of the new user.
+-o, --otp      | Optional. Require 2FA for this user.
+
+## Remove user
+
+```shell
+$ nginx-auth-server user remove --username foo
+$ nginx-auth-server u r -u foo
+```
+
+This command will remove a user from the database. All user-related cookies will also be deleted in the process.
+
+### Command flags
+
+Flag           | Meaning
+-------------- | ----------
+-u, --username | Required. Username of the existing user.
+
+## List all users
+
+```shell
+$ nginx-auth-server user list
+$ nginx-auth-server u l
 ```
 
 > The above command returns JSON structured like this:
@@ -106,140 +68,169 @@ let kittens = api.kittens.get();
 ```json
 [
   {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
+    "username": "foo",
+    "password": "$2a$04$P/PP2/wTdzwAZJphoWJjE.srUTKPbIA2If19WBmHrZ0E9As.0TilO",
+    "otpSecret": null
   }
 ]
 ```
 
-This endpoint retrieves all kittens.
+This command will list all users in the database.
+
+## List all cookies
+
+```shell
+$ nginx-auth-server cookie list
+$ nginx-auth-server c l
+```
+
+> The above command returns JSON structured like this:
+
+```json
+the database contains 1 cookies
+[
+  {
+    "name": "Nginx-Auth-Server-Token",
+    "value": "$2a$04$lPwzADvbNB2jkNo5l8uNAO8BFmbe6jvXLG649L3VG7VRtCtuU8GKi",
+    "expires": "2022-07-30T22:09:27.1577237+02:00",
+    "domain": "localhost",
+    "username": "foo",
+    "httpOnly": true,
+    "secure": true
+  }
+]
+```
+
+This command will list all cookies in the database.
+
+## Purge all cookies
+
+```shell
+$ nginx-auth-server cookie purge
+$ nginx-auth-server c p
+```
+
+This command will delete all cookies in the database. All user authorizations will be reset in the process.
+
+# HTTP API
+
+nginx-auth-server uses cookies to authorize with the API. The cookie is set by the server in the response of a successful login (see [login](#login-form)).
+
+## Authenticate
+
+```javascript
+fetch("http://localhost:17397/auth")
+```
+
+This endpoint checks if the client is authenticated.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`GET http://localhost:17397/auth`
 
-### Query Parameters
+### HTTP status codes
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+Status code | Meaning
+----------- | -------
+200         | Client is authenticated and the provided auth cookie is valid.
+401         | Client is not authenticated or the auth cookie expired.
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2" \
-  -H "Authorization: meowmeowmeow"
-```
+## Login (HTML)
 
 ```javascript
-const kittn = require('kittn');
+fetch("http://localhost:17397/login")
+```
 
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
+This endpoint provides the HTML for the login page. If the client is already authenticated and the auth cookie that was provided is valid, the endpoint provides an empty response.
+
+### HTTP Request
+
+`GET http://localhost:17397/login`
+
+## Login form
+
+```javascript
+fetch('http://localhost:17397/login', {
+  method: 'post',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    inputUsername: 'foo',
+    inputPassword: 'bar',
+    inputTotp: '123456',
+    recaptchaToken: '<google_provided_recaptcha_token_here>'
+  }),
+});
+```
+
+This endpoint processes the information from the login form and sets the authentication cookie if the client provides valid credentials.
+
+### HTTP Request
+
+`POST http://localhost:17397/login`
+
+### POST body (encoded as JSON)
+
+Parameter      | Description
+---------      | -----------
+inputUsername  | Required. The username provided by the user.
+inputPassword  | Required. The password provided by the user.
+inputTotp      | Required if TOTP is enabled for the provided user. The six digit one time password.
+recaptchaToken | Required if reCAPTCHA is enabled in the server configuration. The reCAPTCHA token provided by Google upon execution.
+
+### HTTP status codes
+
+<aside class="notice">The endpoint may provide additional error information as JSON in the response.</aside>
+
+Status code | Meaning
+----------- | -------
+200         | Client was already or is freshly authenticated. The auth cookie will be set by the endpoint if the user was not already authenticated.
+401         | Bad input: username, password or TOTP is invalid.
+500         | Internal server error regarding reCAPTCHA verification.
+
+## Logout
+
+```javascript
+fetch("http://localhost:17397/logout")
+```
+
+This endpoint will immediately expire the authentication cookie if the client is authenticated.
+
+### HTTP Request
+
+`GET http://localhost:17397/logout`
+
+### HTTP status codes
+
+Status code | Meaning
+----------- | -------
+200         | Client was successfully logged out.
+401         | Client is not authenticated.
+
+## Whoami
+
+```javascript
+fetch("http://localhost:17397/whoami")
 ```
 
 > The above command returns JSON structured like this:
 
 ```json
 {
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
+  "username": "foo",
 }
 ```
 
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
+This endpoint will return the clients username if the client is authenticated.
 
 ### HTTP Request
 
-`GET http://example.com/kittens/<ID>`
+`GET http://localhost:17397/whoami`
 
-### URL Parameters
+### HTTP status codes
 
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to retrieve
-
-## Delete a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2" \
-  -X DELETE \
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint deletes a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
-
+Status code | Meaning
+----------- | -------
+200         | User information has been returned in the response.
+401         | Client is not authenticated.
