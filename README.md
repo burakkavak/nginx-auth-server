@@ -7,6 +7,7 @@ A lightweight authentication server designed to be used in conjunction with ngin
 - [Demo](#demo)
 - [Features](#features)
 - [Getting Started](#getting-started)
+- [Documentation](#documentation)
 - [Changelog](#changelog)
 - [Credits](#credits)
 - [License](#license)
@@ -133,6 +134,10 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Documentation
+
+The CLI and HTTP API documentation is available here: [https://burakkavak.github.io/nginx-auth-server/](https://burakkavak.github.io/nginx-auth-server/)
 
 ## Changelog
 
