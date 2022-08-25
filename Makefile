@@ -33,4 +33,4 @@ compileAll:
 	GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags "prod netgo" ./src
 
 package:
-	$(foreach binary,$(ALL_BINARIES),tar cfz ./bin/$(binary).tar.gz ./bin/$(binary);)
+	cd bin && $(foreach binary,$(ALL_BINARIES),tar cfz $(binary).tar.gz $(binary);)
