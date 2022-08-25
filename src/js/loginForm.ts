@@ -1,17 +1,26 @@
 import Recaptcha from './recaptcha';
 
+/**
+ * This class handles all login form related logic, including dynamic input validation.
+ */
 export default class LoginForm {
+  /** login <form> element */
   form: HTMLFormElement;
 
+  /** username <input> element */
   usernameInput: HTMLInputElement;
 
+  /** password <input> element */
   passwordInput: HTMLInputElement;
 
+  /** TOTP <input> element */
   totpInput: HTMLInputElement;
 
+  /** submit <button> element */
   submitButton: HTMLButtonElement;
 
   private constructor(form: HTMLFormElement) {
+    // retrieve mandatory HTMLElements from current form and assign
     this.form = form;
     this.usernameInput = form.querySelector('#inputUsername');
     this.passwordInput = form.querySelector('#inputPassword');
@@ -22,13 +31,22 @@ export default class LoginForm {
       throw new Error('error: username input, password input, TOTP input or submit button is missing');
     }
 
+    // attach validation logic upon form submission
     form.addEventListener('submit', (event) => this.onFormSubmit(event));
   }
 
+  /** Initialize the given <form> as a login form */
   static init(form: HTMLFormElement): LoginForm {
     return new LoginForm(form);
   }
 
+  /**
+   * Dynamically validates the form using Bootstrap form validation.
+   * After successful client side validation, the form content will be submitted to the API.
+   * Reloads the page after a login, redirecting the user to the actual page.
+   * @param event - event that has been triggered by the user
+   * @returns void
+   */
   async onFormSubmit(event: Event) {
     event.preventDefault();
 
@@ -48,6 +66,7 @@ export default class LoginForm {
       return;
     }
 
+    // save form data
     const formDataObject = {};
     const formData = new FormData(form);
     formData.forEach((value, key) => {
@@ -65,10 +84,12 @@ export default class LoginForm {
 
     let recaptchaToken = '';
 
+    // execute reCAPTCHA if it's enabled
     if (Recaptcha.ENABLED) {
       recaptchaToken = await Recaptcha.execute();
     }
 
+    // submit the form to the API for server-side validation
     try {
       const response = await fetch(form.action, {
         method: 'post',
@@ -77,16 +98,18 @@ export default class LoginForm {
         },
         body: JSON.stringify({
           ...formDataObject,
-          recaptchaToken,
+          recaptchaToken, // attach reCAPTCHA token to the request
         }),
       });
 
       if (response.ok) {
+        // reload the page if the API reports a successful login
         window.location.reload();
       } else {
         this.resetSubmitButton(originalButtonHTML);
         this.toggleFormState();
 
+        // process API response to determine error origin
         const responseText = await response.text();
 
         if (responseText.includes('TOTP')) {
@@ -131,14 +154,13 @@ export default class LoginForm {
     }
   }
 
+  /** Resets the submit button to the initial state. */
   resetSubmitButton(originalHtml: string): void {
     this.submitButton.innerHTML = originalHtml;
     this.submitButton.removeAttribute('style');
   }
 
-  /**
-   * Disables/enables form, inputs and buttons
-   */
+  /** Disables/enables form, it's inputs and buttons */
   toggleFormState(): void {
     this.usernameInput.readOnly = !this.usernameInput.readOnly;
     this.passwordInput.readOnly = !this.passwordInput.readOnly;

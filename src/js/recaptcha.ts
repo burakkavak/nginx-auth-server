@@ -1,8 +1,16 @@
 import { firstValueFrom, Subject } from 'rxjs';
 
+/**
+ * This class handles all Google reCAPTCHA related logic.
+ */
 export default class Recaptcha {
+  /**
+   * True if reCAPTCHA is enabled.
+   * Used by {@link LoginForm}
+   */
   public static ENABLED = false;
 
+  /** On a successful Captcha, the Google-provided tokens are saved here  */
   private static TOKEN$ = new Subject<string>();
 
   private constructor() { }
@@ -11,6 +19,10 @@ export default class Recaptcha {
     this.ENABLED = true;
   }
 
+  /**
+   * Called after reCAPTCHA loaded it's scripts.
+   * Will render the widget on the current site.
+   */
   static onLoad() {
     const container = <HTMLElement>document.querySelector('#g-recaptcha');
 
@@ -23,6 +35,11 @@ export default class Recaptcha {
     }, true);
   }
 
+  /**
+   * Executes the captcha, retrieving a token from Google upon successful captcha solving.
+   * Executed by {@link LoginForm}
+   * @returns reCAPTCHA token that shall be verified server-side
+   */
   static async execute(): Promise<string> {
     grecaptcha.execute();
 
@@ -31,6 +48,10 @@ export default class Recaptcha {
     return token;
   }
 
+  /**
+   * Called by reCAPTCHA.js after the captcha has been solved.
+   * @param response - reCAPTCHA token that shall be verified server-side
+   */
   static onExecute(response: string) {
     grecaptcha.reset();
 
@@ -38,4 +59,5 @@ export default class Recaptcha {
   }
 }
 
+// redirect window.recaptchaOnLoad to this class
 (<any>window).recaptchaOnLoad = () => Recaptcha.onLoad();
