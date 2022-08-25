@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.5] - 2022-08-25
+- fixed an issue with the libc-dependency in the binaries, that prevented the application from running on older libc versions
+
 ## [0.0.4] - 2022-07-22
 - added /whoami API endpoint
 
