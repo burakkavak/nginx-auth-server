@@ -20,17 +20,17 @@ compile:
 	npm i
 	npm run build
 
-	go build -o "./bin/${PROJECT_NAME}-${GOOS}-${GOARCH}" -tags prod ./src
+	go build -o "./bin/${PROJECT_NAME}-${GOOS}-${GOARCH}" -tags "prod netgo" ./src
 
 compileAll:
 	npm i
 	npm run build
 
-	GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags prod ./src
-	GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags prod ./src
-	GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags prod ./src
-	GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags prod ./src
-	GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags prod ./src
+	GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags "prod netgo" ./src
+	GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags "prod netgo" ./src
+	GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags "prod netgo" ./src
+	GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags "prod netgo" ./src
+	GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags "prod netgo" ./src
 
 package:
 	$(foreach binary,$(ALL_BINARIES),tar cfz ./bin/$(binary).tar.gz ./bin/$(binary);)

@@ -12,6 +12,7 @@ variables:
   LINUX_ARM_BINARY: "${PROJECT_NAME}-linux-arm"
   LINUX_ARM64_BINARY: "${PROJECT_NAME}-linux-arm64"
   WINDOWS_AMD64_BINARY: "${PROJECT_NAME}-windows-amd64.exe"
+  GO_BUILD_TAGS: "prod netgo"
 
 compile:
   stage: build
@@ -21,11 +22,11 @@ compile:
     - npm i
     - npm run build
     - mkdir -p ./bin
-    - "GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags prod ./src"
-    - "GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags prod ./src"
-    - "GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags prod ./src"
-    - "GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags prod ./src"
-    - "GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags prod ./src"
+    - "GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags ${GO_BUILD_TAGS} ./src"
+    - "GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags ${GO_BUILD_TAGS} ./src"
+    - "GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags ${GO_BUILD_TAGS} ./src"
+    - "GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags ${GO_BUILD_TAGS} ./src"
+    - "GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags ${GO_BUILD_TAGS} ./src"
     - "tar cfz ./bin/${LINUX_ARM_BINARY}.tar.gz ./bin/${LINUX_ARM_BINARY}"
     - "tar cfz ./bin/${LINUX_ARM64_BINARY}.tar.gz ./bin/${LINUX_ARM64_BINARY}"
     - "tar cfz ./bin/${LINUX_386_BINARY}.tar.gz ./bin/${LINUX_386_BINARY}"
