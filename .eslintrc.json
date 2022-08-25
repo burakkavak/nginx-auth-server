@@ -1,9 +1,15 @@
 {
+  "plugins": [
+    "eslint-plugin-tsdoc"
+  ],
   "extends": [
     "airbnb-base",
     "airbnb-typescript/base"
   ],
   "parserOptions": {
     "project": "./tsconfig.json"
+  },
+  "rules": {
+    "tsdoc/syntax": "warn"
   }
 }
