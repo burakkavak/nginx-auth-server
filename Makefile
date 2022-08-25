@@ -1,5 +1,7 @@
 PROJECT_NAME			:= nginx-auth-server
 
+GO_BUILD_TAGS			:= "prod netgo"
+
 LINUX_386_BINARY		:= ${PROJECT_NAME}-linux-i386
 LINUX_AMD64_BINARY		:= ${PROJECT_NAME}-linux-amd64
 LINUX_ARM_BINARY		:= ${PROJECT_NAME}-linux-arm
@@ -20,17 +22,17 @@ compile:
 	npm i
 	npm run build
 
-	go build -o "./bin/${PROJECT_NAME}-${GOOS}-${GOARCH}" -tags "prod netgo" ./src
+	go build -o "./bin/${PROJECT_NAME}-${GOOS}-${GOARCH}" -tags ${GO_BUILD_TAGS} ./src
 
 compileAll:
 	npm i
 	npm run build
 
-	GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags "prod netgo" ./src
-	GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags "prod netgo" ./src
-	GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags "prod netgo" ./src
-	GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags "prod netgo" ./src
-	GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags "prod netgo" ./src
+	GOOS=linux GOARCH=386 go build -o ./bin/${LINUX_386_BINARY} -tags ${GO_BUILD_TAGS} ./src
+	GOOS=linux GOARCH=amd64 go build -o ./bin/${LINUX_AMD64_BINARY} -tags ${GO_BUILD_TAGS} ./src
+	GOOS=linux GOARCH=arm go build -o ./bin/${LINUX_ARM_BINARY} -tags ${GO_BUILD_TAGS} ./src
+	GOOS=linux GOARCH=arm64 go build -o ./bin/${LINUX_ARM64_BINARY} -tags ${GO_BUILD_TAGS} ./src
+	GOOS=windows GOARCH=amd64 go build -o ./bin/${WINDOWS_AMD64_BINARY} -tags ${GO_BUILD_TAGS} ./src
 
 package:
 	cd bin && $(foreach binary,$(ALL_BINARIES),tar cfz $(binary).tar.gz $(binary);)
