@@ -302,11 +302,11 @@ func createAndSetAuthCookie(c *gin.Context, username string) {
 	cookie := Cookie{
 		Name:     "Nginx-Auth-Server-Token",
 		Value:    GeneratePassword(192, 45, 90),
-		Expires:  time.Now().AddDate(0, 0, 7),
+		Expires:  time.Now().AddDate(0, 0, GetCookieLifetime()),
 		Domain:   GetDomain(),
 		Username: username,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   GetCookieSecure(),
 	}
 
 	err := SaveCookie(cookie)

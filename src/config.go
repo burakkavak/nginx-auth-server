@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"gopkg.in/ini.v1"
 )
 
@@ -10,6 +11,12 @@ type Server struct {
 	ListenAddress string `ini:"listen_address"`
 	ListenPort    int    `ini:"listen_port"`
 	Domain        string `ini:"domain"`
+}
+
+// CookieConfig :: [CookieConfig]-Section of .ini
+type Cookies struct {
+	Lifetime int  `ini:"lifetime"`
+	Secure   bool `ini:"secure"`
 }
 
 // LDAP :: [LDAP]-Section of .ini
@@ -29,6 +36,7 @@ type Recaptcha struct {
 
 type Config struct {
 	Server
+	Cookies
 	LDAP
 	Recaptcha
 }
@@ -40,6 +48,10 @@ var (
 			ListenAddress: "127.0.0.1",
 			ListenPort:    17397,
 			Domain:        "localhost",
+		},
+		Cookies: Cookies{
+			Lifetime: 7,
+			Secure:   true,
 		},
 		LDAP: LDAP{
 			Enabled:            false,
@@ -92,6 +104,16 @@ func GetListenPort() int {
 func GetDomain() string {
 	parse()
 	return config.Domain
+}
+
+func GetCookieLifetime() int {
+	parse()
+	return config.Cookies.Lifetime
+}
+
+func GetCookieSecure() bool {
+	parse()
+	return config.Cookies.Secure
 }
 
 func GetLDAPEnabled() bool {
