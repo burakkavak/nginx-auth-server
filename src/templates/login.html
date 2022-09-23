@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <title>Authentication: Login</title>
 
     <!-- Bootstrap -->
@@ -19,6 +19,9 @@
         <div class="row">
             <div class="col-12 d-flex justify-content-center align-items-md-center">
                 <form class="w-100 login-form needs-validation {{if .recaptchaEnabled}}recaptcha-form{{end}}" action="/login" method="post" novalidate>
+                    <div class="mb-3 alert alert-warning d-none" id="sessionExpiredNotice" role="alert">
+                        Your previous session has expired.
+                    </div>
                     <div class="mb-3 input-group">
                         <div class="input-group-text"><i class="fa-solid fa-at fa-fw"></i></div>
                         <input type="text" class="form-control" id="inputUsername" name="inputUsername" placeholder="Username" required>

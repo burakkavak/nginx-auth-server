@@ -292,13 +292,13 @@ func processLoginForm(c *gin.Context) {
 				}
 			}
 
-			createAndSetAuthCookie(c, user.Username)
-			c.Status(200)
+			cookie := createAndSetAuthCookie(c, user.Username)
+			c.JSON(200, gin.H{"expires": cookie.Expires.UnixMilli()})
 		}
 	}
 }
 
-func createAndSetAuthCookie(c *gin.Context, username string) {
+func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	cookie := Cookie{
 		Name:     "Nginx-Auth-Server-Token",
 		Value:    GeneratePassword(192, 45, 90),
@@ -323,6 +323,8 @@ func createAndSetAuthCookie(c *gin.Context, username string) {
 		HttpOnly: cookie.HttpOnly,
 		Secure:   cookie.Secure,
 	})
+
+	return cookie
 }
 
 func whoami(c *gin.Context) {

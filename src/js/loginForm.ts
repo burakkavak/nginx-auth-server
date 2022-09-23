@@ -1,4 +1,5 @@
 import Recaptcha from './recaptcha';
+import SessionNotice from './sessionNotice';
 
 /**
  * This class handles all login form related logic, including dynamic input validation.
@@ -103,6 +104,18 @@ export default class LoginForm {
       });
 
       if (response.ok) {
+        // get cookie expiration timestamp from response body and save it to localStorage
+        response.json()
+          .then((json) => {
+            localStorage.setItem(
+              SessionNotice.TOKEN_EXPIRATION_LOCALSTORAGE_KEY,
+              String(json.expires),
+            );
+          })
+          .catch((error) => {
+            console.error('error: could not convert response to json.', error);
+          });
+
         // reload the page if the API reports a successful login
         window.location.reload();
       } else {
