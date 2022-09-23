@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -243,7 +243,7 @@ func processLoginForm(c *gin.Context) {
 
 		defer httpResponse.Body.Close()
 
-		responseBody, err := ioutil.ReadAll(httpResponse.Body)
+		responseBody, err := io.ReadAll(httpResponse.Body)
 
 		if err != nil {
 			c.AbortWithStatusJSON(500, gin.H{"error": "could not read reCAPTCHA verification response from Google"})
