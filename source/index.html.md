@@ -122,7 +122,15 @@ nginx-auth-server uses cookies to authorize with the API. The cookie is set by t
 fetch("http://localhost:17397/auth")
 ```
 
-This endpoint checks if the client is authenticated.
+> The above command returns JSON structured like this:
+
+```json
+{
+  "expires": 1664569392952
+}
+```
+
+This endpoint checks if the client is authenticated. The cookie expiration timestamp is returned if the authentication was successful.
 
 ### HTTP Request
 
@@ -133,7 +141,7 @@ This endpoint checks if the client is authenticated.
 Status code | Meaning
 ----------- | -------
 200         | Client is authenticated and the provided auth cookie is valid.
-401         | Client is not authenticated or the auth cookie expired.
+401         | Client is not authenticated or the auth cookie expired/invalid.
 
 ## Login (HTML)
 
