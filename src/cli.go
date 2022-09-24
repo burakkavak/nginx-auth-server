@@ -53,6 +53,8 @@ var app = &cli.App{
 						},
 					},
 					Action: func(cCtx *cli.Context) error {
+						// TODO: check case-insensitive for existing users and prevent account creation
+						// TODO: check for existing LDAP users and show warning
 						addUser(cCtx.String("username"), cCtx.String("password"), cCtx.Bool("otp"))
 						return nil
 					},
