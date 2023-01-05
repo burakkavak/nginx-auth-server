@@ -55,6 +55,7 @@ var app = &cli.App{
 					Action: func(cCtx *cli.Context) error {
 						// TODO: check case-insensitive for existing users and prevent account creation
 						// TODO: check for existing LDAP users and show warning
+						// TODO: let user input password from terminal instead of using a parameter to avoid plain-text passwords in bash/zsh history
 						addUser(cCtx.String("username"), cCtx.String("password"), cCtx.Bool("otp"))
 						return nil
 					},
