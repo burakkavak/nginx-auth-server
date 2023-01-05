@@ -172,11 +172,16 @@ func DeleteCookiesByUsername(username string) error {
 
 // VerifyCookie :: Returns nil if the cookie is valid
 func VerifyCookie(cookieValue string) error {
-	cookie := GetCookieByValue(cookieValue)
+	cookie := GetCookieFromCache(cookieValue)
+
+	if cookie == nil {
+		cookie = GetCookieByValue(cookieValue)
+	}
 
 	if cookie == nil || cookie.Expires.Before(time.Now()) {
 		return errors.New("error: cookie not found or expired")
 	} else {
+		SaveCookieToCache(cookie, cookieValue)
 		return nil
 	}
 }
