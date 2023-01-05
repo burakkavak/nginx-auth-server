@@ -7,6 +7,7 @@ A lightweight authentication server designed to be used in conjunction with ngin
 - [Demo](#demo)
 - [Features](#features)
 - [Getting Started](#getting-started)
+- [Contributing](#contributing)
 - [Documentation](#documentation)
 - [Changelog](#changelog)
 - [Credits](#credits)
@@ -134,6 +135,43 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Contributing
+
+Fork this repo and checkout the *develop* branch.
+
+```shell
+$ git clone <your_forked_repo> -b develop
+$ cd nginx-auth-server
+```
+
+Install the npm dependencies.
+
+```shell
+$ npm i
+```
+
+Build the JavaScript/TypeScript/SCSS stack once.
+
+```shell
+$ npm run build
+```
+
+Run the Go application
+
+```shell
+$ go run ./src/ run
+```
+
+You can now point a nginx webserver to this auth-server. Refer to the nginx configuration in the *[Getting Started](#getting-started)* section.
+
+If you want to make changes in the TypeScript/SCSS, you can run npm in *watch* mode:
+
+```shell
+$ npm run watch
+```
+
+**You have to restart the Go application after every change for the changes to take effect.**
 
 ## Documentation
 
