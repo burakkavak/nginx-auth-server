@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 ## [0.0.6] - 2023-01-05
 - updated security (*argon2* is being used instead of *bcrypt* now)
 - implemented cache for better performance
+- cookie lifetime and secure attribute is now customizable in config.ini
+- upon cookie expiration, the user will get a notice in the frontend now
 - updated Go to version 1.19
 - updated Go dependencies
 - updated Node.js dependencies
