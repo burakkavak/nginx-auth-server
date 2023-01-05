@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.6] - 2023-01-05
+- updated security (*argon2* is being used instead of *bcrypt* now)
+- implemented cache for better performance
+- updated Go to version 1.19
+- updated Go dependencies
+- updated Node.js dependencies
+
 ## [0.0.5] - 2022-08-25
 - fixed an issue with the libc-dependency in the binaries, that prevented the application from running on older libc versions
 
