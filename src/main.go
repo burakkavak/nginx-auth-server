@@ -18,7 +18,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pquerna/otp/totp"
-	"golang.org/x/crypto/bcrypt"
 )
 
 //go:embed templates
@@ -80,11 +79,7 @@ func addUser(username string, password string, otp bool) {
 	} else if err := CheckPasswordRequirements(password); err != nil {
 		log.Fatalf("password does not meet minimum requirements: %s", err)
 	} else {
-		hash, err := GenerateHash(password)
-
-		if err != nil {
-			log.Fatalf("could not salt and hash password: %s", err)
-		}
+		encodedPasswordHash := GenerateHash(password)
 
 		var encryptedOtpSecret []byte
 
@@ -115,7 +110,7 @@ func addUser(username string, password string, otp bool) {
 
 		user := User{
 			Username:  username,
-			Password:  hash,
+			Password:  encodedPasswordHash,
 			OtpSecret: encryptedOtpSecret,
 		}
 
@@ -275,7 +270,7 @@ func processLoginForm(c *gin.Context) {
 			return
 		}
 	} else {
-		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)) != nil {
+		if CompareHashAndPassword(user.Password, data.Password) != nil {
 			c.AbortWithStatus(401)
 			return
 		} else {

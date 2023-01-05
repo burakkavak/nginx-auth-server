@@ -2,15 +2,24 @@
 package main
 
 import (
+	"crypto/subtle"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"math/rand"
 	"strings"
 )
 
-const (
-	bcryptCost = bcrypt.MinCost
-)
+type argonParams struct {
+	memory      uint32
+	iterations  uint32
+	parallelism uint8
+	saltLength  uint32
+	keyLength   uint32
+}
 
 func GeneratePassword(passwordLength, minNum, minUpperCase int) string {
 	const (
@@ -47,10 +56,96 @@ func GeneratePassword(passwordLength, minNum, minUpperCase int) string {
 	return string(inRune)
 }
 
-func GenerateHash(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+func GenerateHash(password string) string {
+	params := &argonParams{
+		memory:      64 * 1024,
+		iterations:  3,
+		parallelism: 2,
+		saltLength:  16,
+		keyLength:   32,
+	}
 
-	return string(hash), err
+	salt, err := GenerateRandomBytes(params.saltLength)
+
+	if err != nil {
+		log.Fatal("an error occurred while trying to generate a random salt.")
+	}
+
+	hash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
+
+	// Base64 encode the salt and hashed password.
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
+
+	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, params.memory, params.iterations, params.parallelism, b64Salt, b64Hash)
+
+	return string(encodedHash)
+}
+
+func CompareHashAndPassword(encodedHash string, password string) error {
+	params, salt, hash, err := decodeArgonHash(encodedHash)
+
+	if err != nil {
+		// error trying to decode argon hash
+		// the hash may be a (legacy) bcrypt hash
+
+		err = bcrypt.CompareHashAndPassword([]byte(encodedHash), []byte(password))
+
+		return err
+	}
+
+	otherHash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
+
+	if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
+		return nil
+	}
+
+	return errors.New("password does not match against argon2 hash")
+
+}
+
+func decodeArgonHash(encodedHash string) (p *argonParams, salt, hash []byte, err error) {
+	vals := strings.Split(encodedHash, "$")
+
+	if len(vals) != 6 {
+		return nil, nil, nil, errors.New("the encoded hash is not in the correct format")
+	}
+
+	var version int
+	_, err = fmt.Sscanf(vals[2], "v=%d", &version)
+
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if version != argon2.Version {
+		return nil, nil, nil, errors.New("incompatible version of argon2")
+	}
+
+	p = &argonParams{}
+	_, err = fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &p.memory, &p.iterations, &p.parallelism)
+
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	salt, err = base64.RawStdEncoding.Strict().DecodeString(vals[4])
+
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	p.saltLength = uint32(len(salt))
+
+	hash, err = base64.RawStdEncoding.Strict().DecodeString(vals[5])
+
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	p.keyLength = uint32(len(hash))
+
+	return p, salt, hash, nil
 }
 
 func CheckPasswordRequirements(password string) error {

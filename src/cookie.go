@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	bolt "go.etcd.io/bbolt"
-	"golang.org/x/crypto/bcrypt"
-	"log"
 	"time"
 )
 
@@ -23,13 +21,9 @@ type Cookie struct {
 }
 
 func SaveCookie(cookie Cookie) error {
-	saltedCookieValue, err := GenerateHash(cookie.Value)
+	encodedCookieHash := GenerateHash(cookie.Value)
 
-	if err != nil {
-		log.Fatalf("error while salting the cookie value for database storage: %s", err)
-	}
-
-	cookie.Value = saltedCookieValue
+	cookie.Value = encodedCookieHash
 
 	db := initDatabase()
 	defer db.Close()
@@ -112,7 +106,7 @@ func GetCookieByValue(cookieValue string) *Cookie {
 
 	return func() *Cookie {
 		for _, cookie := range cookies {
-			if bcrypt.CompareHashAndPassword([]byte(cookie.Value), []byte(cookieValue)) == nil {
+			if CompareHashAndPassword(cookie.Value, cookieValue) == nil {
 				return &cookie
 			}
 		}
