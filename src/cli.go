@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
+	"syscall"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/term"
 )
 
 var app = &cli.App{
@@ -43,20 +48,27 @@ var app = &cli.App{
 							Aliases:  []string{"u"},
 							Required: true,
 						},
-						&cli.StringFlag{
-							Name:    "password",
-							Aliases: []string{"p"},
-						},
 						&cli.BoolFlag{
 							Name:    "otp",
 							Aliases: []string{"o"},
 						},
 					},
 					Action: func(cCtx *cli.Context) error {
-						// TODO: check case-insensitive for existing users and prevent account creation
 						// TODO: check for existing LDAP users and show warning
-						// TODO: let user input password from terminal instead of using a parameter to avoid plain-text passwords in bash/zsh history
-						addUser(cCtx.String("username"), cCtx.String("password"), cCtx.Bool("otp"))
+						username := cCtx.String("username")
+						existingUser := GetUserByUsernameCaseInsensitive(username)
+
+						if existingUser != nil {
+							return fmt.Errorf("error: user with username '%s' already exists", existingUser.Username)
+						}
+
+						password, err := promptPasswordInput()
+
+						if err != nil {
+							return errors.New("error: password input failed")
+						}
+
+						addUser(username, password, cCtx.Bool("otp"))
 						return nil
 					},
 				},
@@ -167,4 +179,29 @@ var app = &cli.App{
 			},
 		},
 	},
+}
+
+func promptPasswordInput() (string, error) {
+	fmt.Print("Enter password: ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Print("\nRepeat password: ")
+	byteRepeatPassword, err := term.ReadPassword(int(syscall.Stdin))
+
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Print("\n")
+
+	if bytes.Compare(bytePassword, byteRepeatPassword) != 0 {
+		return "", errors.New("error: password mismatch")
+	}
+
+	password := string(bytePassword)
+	return strings.TrimSpace(password), nil
 }

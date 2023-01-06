@@ -9,6 +9,7 @@ require (
 	github.com/urfave/cli/v2 v2.23.7
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/crypto v0.5.0
+	golang.org/x/term v0.4.0
 	gopkg.in/ini.v1 v1.67.0
 )
 

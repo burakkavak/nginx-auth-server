@@ -109,3 +109,15 @@ func GetUserByUsername(username string) *User {
 
 	return user
 }
+
+func GetUserByUsernameCaseInsensitive(username string) *User {
+	users := GetUsers()
+
+	for _, user := range users {
+		if user.Username == username {
+			return &user
+		}
+	}
+
+	return nil
+}
