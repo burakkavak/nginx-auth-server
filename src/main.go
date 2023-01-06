@@ -175,7 +175,7 @@ func logout(c *gin.Context) {
 
 	if err == nil && VerifyCookie(cookieValue) == nil {
 		cookie := GetCookieByValue(cookieValue)
-		err := DeleteCookie(cookieValue)
+		err := DeleteCookieByValue(cookieValue)
 
 		if err != nil || cookie == nil {
 			c.AbortWithError(http.StatusInternalServerError, errors.New("could not delete user cookie from database"))

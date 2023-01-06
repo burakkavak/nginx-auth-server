@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-// todo: periodically remove expired cookies
-
 // Cookie :: refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 type Cookie struct {
 	Name     string    `json:"name"`
@@ -124,11 +122,9 @@ func PurgeCookies() error {
 	})
 }
 
-func DeleteCookie(cookieValue string) error {
-	cookie := GetCookieByValue(cookieValue)
-
+func DeleteCookie(cookie *Cookie) error {
 	if cookie == nil {
-		return errors.New("error: cannot find cookie in database")
+		return errors.New("error: provided cookie is nil")
 	}
 
 	db := initDatabase()
@@ -143,6 +139,16 @@ func DeleteCookie(cookieValue string) error {
 
 		return bucket.Delete([]byte(cookie.Value))
 	})
+}
+
+func DeleteCookieByValue(cookieValue string) error {
+	cookie := GetCookieByValue(cookieValue)
+
+	if cookie == nil {
+		return errors.New("error: cannot find cookie in database")
+	} else {
+		return DeleteCookie(cookie)
+	}
 }
 
 // DeleteCookiesByUsername :: Delete all cookies for a given username
@@ -178,8 +184,12 @@ func VerifyCookie(cookieValue string) error {
 		cookie = GetCookieByValue(cookieValue)
 	}
 
-	if cookie == nil || cookie.Expires.Before(time.Now()) {
-		return errors.New("error: cookie not found or expired")
+	if cookie == nil {
+		return errors.New("error: cookie not found")
+	} else if cookie.Expires.Before(time.Now()) {
+		DeleteCookie(cookie)
+		DeleteCookieFromCache(cookie)
+		return errors.New("error: cookie is expired and was deleted")
 	} else {
 		SaveCookieToCache(cookie, cookieValue)
 		return nil

@@ -11,3 +11,9 @@ func SaveCookieToCache(cookie *Cookie, plainCookieValue string) {
 func GetCookieFromCache(plainCookieValue string) *Cookie {
 	return cache[plainCookieValue]
 }
+
+func DeleteCookieFromCache(cookie *Cookie) {
+	if cookie != nil {
+		delete(cache, cookie.Value)
+	}
+}
