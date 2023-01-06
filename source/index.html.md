@@ -27,8 +27,8 @@ You can add the *help* argument or the *--help* flag to any command to get usage
 ## Add user
 
 ```shell
-$ nginx-auth-server user add --username foo --password foobar --otp
-$ nginx-auth-server u a -u foo -p foobar -o
+$ nginx-auth-server user add --username foo --otp
+$ nginx-auth-server u a -u foo -o
 ```
 
 This command will add and persist a user in the database. The command will fail if there is an existing user with the same username. If there is existing cookies related to this username (maybe the user was authenticated through LDAP in the past), the command will also fail. If TOTP is required for this user, the application will attempt to print the TOTP secret QR code in the terminal using the [QRencode](https://github.com/fukuchi/libqrencode) library.
@@ -38,7 +38,6 @@ This command will add and persist a user in the database. The command will fail 
 Flag           | Meaning
 -------------- | ----------
 -u, --username | Required. Username of the new user.
--p, --password | Required. Password of the new user.
 -o, --otp      | Optional. Require 2FA for this user.
 
 ## Remove user
@@ -69,7 +68,7 @@ $ nginx-auth-server u l
 [
   {
     "username": "foo",
-    "password": "$2a$04$P/PP2/wTdzwAZJphoWJjE.srUTKPbIA2If19WBmHrZ0E9As.0TilO",
+    "password": "$argon2id$v=19$m=65536,t=3,p=2$Bd+sfX0eZgOs7K7siUCBkw$bQgNDTpWba/sRVap2XLERYSRqIdKJNwrZ8p6NLaTivI",
     "otpSecret": null
   }
 ]
@@ -91,7 +90,7 @@ the database contains 1 cookies
 [
   {
     "name": "Nginx-Auth-Server-Token",
-    "value": "$2a$04$lPwzADvbNB2jkNo5l8uNAO8BFmbe6jvXLG649L3VG7VRtCtuU8GKi",
+    "value": "$argon2id$v=19$m=65536,t=3,p=2$HxNb9hVhYTBoWl2zhGeSfQ$JmHQKgh5swQ9moBLobOyaVaV6Hu2Ol8l90ErwFiq2CM",
     "expires": "2022-07-30T22:09:27.1577237+02:00",
     "domain": "localhost",
     "username": "foo",
