@@ -3,10 +3,12 @@
   "version": "0.0.6",
   "main": "src/js/main.js",
   "scripts": {
-    "build": "webpack --mode production",
-    "watch": "webpack --mode development --watch"
+    "build": "sass --load-path=node_modules/ --style=compressed --no-source-map ./src/scss/main.scss ./src/css/main.css && webpack --mode=production",
+    "watch-scss": "sass --load-path=node_modules/ --watch ./src/scss/main.scss ./src/css/main.css",
+    "watch-ts": "webpack --mode development --watch"
   },
   "dependencies": {
+    "bootstrap": "^5.2.3",
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
@@ -18,6 +20,7 @@
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-tsdoc": "^0.2.17",
+    "sass": "^1.57.1",
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.4",
     "webpack": "^5.75.0",

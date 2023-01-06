@@ -23,7 +23,7 @@ import (
 //go:embed templates
 var templateFiles embed.FS
 
-//go:embed css js/app.bundle.js
+//go:embed css/main.css js/app.bundle.js
 var staticFiles embed.FS
 
 var GinMode = gin.DebugMode

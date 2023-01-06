@@ -28,3 +28,8 @@ nginx-auth-server.db
 
 # webpack JavaScript bundle
 src/js/app.bundle.js
+src/js/app.bundle.js.map
+
+# CSS bundle
+src/css/main.css
+src/css/main.css.map

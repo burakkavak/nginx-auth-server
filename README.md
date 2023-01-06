@@ -168,7 +168,8 @@ You can now point a nginx webserver to this auth-server. Refer to the nginx conf
 If you want to make changes in the TypeScript/SCSS, you can run npm in *watch* mode:
 
 ```shell
-$ npm run watch
+$ npm run watch-ts
+$ npm run watch-scss
 ```
 
 **You have to restart the Go application after every change for the changes to take effect.**
