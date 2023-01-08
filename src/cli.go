@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"syscall"
 
@@ -54,12 +56,22 @@ var app = &cli.App{
 						},
 					},
 					Action: func(cCtx *cli.Context) error {
-						// TODO: check for existing LDAP users and show warning
 						username := cCtx.String("username")
 						existingUser := GetUserByUsernameCaseInsensitive(username)
 
 						if existingUser != nil {
-							return fmt.Errorf("error: user with username '%s' already exists", existingUser.Username)
+							return fmt.Errorf("error: user with username '%s' already exists\n", existingUser.Username)
+						}
+
+						if ldapCheckUserExists(username) {
+							fmt.Printf("warning: LDAP user with the same username '%s' already exists\n", username)
+
+							answer := promptYesNo("Do you want to continue creating a local user?")
+
+							if !answer {
+								return nil
+							}
+
 						}
 
 						password, err := promptPasswordInput()
@@ -181,6 +193,31 @@ var app = &cli.App{
 	},
 }
 
+func promptYesNo(message string) bool {
+	answer := "initial"
+	var err error = nil
+
+	for !strings.EqualFold(answer, "n") && !strings.EqualFold(answer, "y") &&
+		!strings.EqualFold(answer, "no") && !strings.EqualFold(answer, "yes") &&
+		answer != "" {
+		fmt.Printf("%s [Y/n] ", message)
+		reader := bufio.NewReader(os.Stdin)
+
+		answer, err = reader.ReadString('\n')
+		answer = strings.TrimSpace(answer)
+
+		if err != nil {
+			log.Fatalf("fatal error: could not read user input: %s", err)
+		}
+	}
+
+	if strings.EqualFold(answer, "n") || strings.EqualFold(answer, "no") {
+		return false
+	} else {
+		return true
+	}
+}
+
 func promptPasswordInput() (string, error) {
 	fmt.Print("Enter password: ")
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
@@ -203,5 +240,11 @@ func promptPasswordInput() (string, error) {
 	}
 
 	password := string(bytePassword)
-	return strings.TrimSpace(password), nil
+
+	if err = CheckPasswordRequirements(password); err != nil {
+		fmt.Printf("%s\n", err)
+		return promptPasswordInput()
+	} else {
+		return strings.TrimSpace(password), nil
+	}
 }

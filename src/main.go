@@ -66,7 +66,7 @@ func addUser(username string, password string, otp bool) {
 		log.Fatalf("invalid username")
 	}
 
-	if GetUserByUsername(username) != nil {
+	if GetUserByUsernameCaseInsensitive(username) != nil {
 		log.Fatalf("user with username %s already exists", username)
 	}
 

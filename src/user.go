@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -43,10 +42,6 @@ func GetUsers() []User {
 func CreateUser(user *User) error {
 	if GetUserByUsername(user.Username) != nil {
 		return errors.New("user with username '" + user.Username + "' already exists")
-	}
-
-	if len(GetCookiesByUsername(user.Username)) != 0 {
-		return errors.New(fmt.Sprintf("error: username '%s' already has cookies saved in database. this username is possibly linked to a LDAP user.", user.Username))
 	}
 
 	db := initDatabase()
