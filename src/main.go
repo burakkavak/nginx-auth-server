@@ -50,11 +50,26 @@ func runGin() {
 	router.GET("/logout", logout)
 	router.GET("/whoami", whoami)
 
-	address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
+	var err error = nil
 
-	fmt.Printf("listening and serving HTTP request on %s\n", address)
+	if GetTlsEnabled() {
+		address := GetListenAddress() + ":" + strconv.Itoa(GetTlsListenPort())
 
-	err := router.Run(address)
+		if err = CheckFileReadable(GetTlsCertPath()); err != nil {
+			log.Fatalf("fatal error: TLS certificate at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsCertPath())
+		}
+
+		if err = CheckFileReadable(GetTlsKeyPath()); err != nil {
+			log.Fatalf("fatal error: TLS key at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsKeyPath())
+		}
+
+		fmt.Printf("listening and serving HTTPS request on %s\n", address)
+		err = router.RunTLS(address, GetTlsCertPath(), GetTlsKeyPath())
+	} else {
+		address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
+		fmt.Printf("listening and serving HTTP request on %s\n", address)
+		err = router.Run(address)
+	}
 
 	if err != nil {
 		panic(fmt.Errorf("fatal error trying to launch the webserver: %w", err))

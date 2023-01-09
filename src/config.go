@@ -13,7 +13,15 @@ type Server struct {
 	Domain        string `ini:"domain"`
 }
 
-// CookieConfig :: [CookieConfig]-Section of .ini
+// TLS :: [TLS]-Section of .ini
+type TLS struct {
+	Enabled     bool   `ini:"enabled"`
+	ListenPort  int    `ini:"listen_port"`
+	TlsCertPath string `ini:"tls_cert_path"`
+	TlsKeyPath  string `ini:"tls_key_path"`
+}
+
+// Cookies :: [Cookies]-Section of .ini
 type Cookies struct {
 	Lifetime int  `ini:"lifetime"`
 	Secure   bool `ini:"secure"`
@@ -36,6 +44,7 @@ type Recaptcha struct {
 
 type Config struct {
 	Server
+	TLS
 	Cookies
 	LDAP
 	Recaptcha
@@ -48,6 +57,12 @@ var (
 			ListenAddress: "127.0.0.1",
 			ListenPort:    17397,
 			Domain:        "localhost",
+		},
+		TLS: TLS{
+			Enabled:     false,
+			ListenPort:  17760,
+			TlsCertPath: "",
+			TlsKeyPath:  "",
 		},
 		Cookies: Cookies{
 			Lifetime: 7,
@@ -93,17 +108,37 @@ func parse() {
 
 func GetListenAddress() string {
 	parse()
-	return config.ListenAddress
+	return config.Server.ListenAddress
 }
 
 func GetListenPort() int {
 	parse()
-	return config.ListenPort
+	return config.Server.ListenPort
 }
 
 func GetDomain() string {
 	parse()
-	return config.Domain
+	return config.Server.Domain
+}
+
+func GetTlsEnabled() bool {
+	parse()
+	return config.TLS.Enabled
+}
+
+func GetTlsListenPort() int {
+	parse()
+	return config.TLS.ListenPort
+}
+
+func GetTlsCertPath() string {
+	parse()
+	return config.TLS.TlsCertPath
+}
+
+func GetTlsKeyPath() string {
+	parse()
+	return config.TLS.TlsKeyPath
 }
 
 func GetCookieLifetime() int {
