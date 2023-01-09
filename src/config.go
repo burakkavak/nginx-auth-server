@@ -15,10 +15,10 @@ type Server struct {
 
 // TLS :: [TLS]-Section of .ini
 type TLS struct {
-	Enabled     bool   `ini:"enabled"`
-	ListenPort  int    `ini:"listen_port"`
-	TlsCertPath string `ini:"tls_cert_path"`
-	TlsKeyPath  string `ini:"tls_key_path"`
+	Enabled    bool   `ini:"enabled"`
+	ListenPort int    `ini:"listen_port"`
+	CertPath   string `ini:"cert_path"`
+	KeyPath    string `ini:"key_path"`
 }
 
 // Cookies :: [Cookies]-Section of .ini
@@ -59,10 +59,10 @@ var (
 			Domain:        "localhost",
 		},
 		TLS: TLS{
-			Enabled:     false,
-			ListenPort:  17760,
-			TlsCertPath: "",
-			TlsKeyPath:  "",
+			Enabled:    false,
+			ListenPort: 17760,
+			CertPath:   "",
+			KeyPath:    "",
 		},
 		Cookies: Cookies{
 			Lifetime: 7,
@@ -133,12 +133,12 @@ func GetTlsListenPort() int {
 
 func GetTlsCertPath() string {
 	parse()
-	return config.TLS.TlsCertPath
+	return config.TLS.CertPath
 }
 
 func GetTlsKeyPath() string {
 	parse()
-	return config.TLS.TlsKeyPath
+	return config.TLS.KeyPath
 }
 
 func GetCookieLifetime() int {
