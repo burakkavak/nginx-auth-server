@@ -83,7 +83,7 @@ var (
 )
 
 const (
-	iniPath = "config.ini"
+	configFileName = "config.ini"
 )
 
 func parse() {
@@ -91,7 +91,7 @@ func parse() {
 		return
 	}
 
-	file, err := ini.Load(iniPath)
+	file, err := ini.Load(fmt.Sprintf("%s/%s", GetExecutableDirectory(), configFileName))
 
 	if err != nil {
 		panic(fmt.Errorf("fatal error while reading configuration from 'config.ini': %w", err))
