@@ -63,7 +63,7 @@ var app = &cli.App{
 							return fmt.Errorf("error: user with username '%s' already exists\n", existingUser.Username)
 						}
 
-						if ldapCheckUserExists(username) {
+						if GetLDAPEnabled() && ldapCheckUserExists(username) {
 							fmt.Printf("warning: LDAP user with the same username '%s' already exists\n", username)
 
 							answer := promptYesNo("Do you want to continue creating a local user?")

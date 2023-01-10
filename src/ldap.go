@@ -27,6 +27,10 @@ func ldapAuthenticate(username string, password string) bool {
 }
 
 func ldapCheckUserExists(username string) bool {
+	if !GetLDAPEnabled() {
+		return false
+	}
+
 	l := ldapConnect()
 	defer l.Close()
 
