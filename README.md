@@ -100,7 +100,7 @@ $ ./nginx-auth-server run
 For user management (adding/removing users) refer to the CLI usage information:
 ```shell
 $ ./nginx-auth-server help
-$ ./nginx-auth-server user add --username foo --password foobar --otp
+$ ./nginx-auth-server user add --username foo --otp
 ```
 
 Reconfigure nginx server:
