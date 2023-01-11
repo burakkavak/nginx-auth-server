@@ -363,8 +363,8 @@
 <span class="nv">$ </span>nginx-auth-server <span class="nt">--help</span>
 </code></pre></div>
 <p>You can add the <em>help</em> argument or the <em>--help</em> flag to any command to get usage information for the given command.</p>
-<h2 id='add-user'>Add user</h2><div class="highlight"><pre class="highlight shell tab-shell"><code><span class="nv">$ </span>nginx-auth-server user add <span class="nt">--username</span> foo <span class="nt">--password</span> foobar <span class="nt">--otp</span>
-<span class="nv">$ </span>nginx-auth-server u a <span class="nt">-u</span> foo <span class="nt">-p</span> foobar <span class="nt">-o</span>
+<h2 id='add-user'>Add user</h2><div class="highlight"><pre class="highlight shell tab-shell"><code><span class="nv">$ </span>nginx-auth-server user add <span class="nt">--username</span> foo <span class="nt">--otp</span>
+<span class="nv">$ </span>nginx-auth-server u a <span class="nt">-u</span> foo <span class="nt">-o</span>
 </code></pre></div>
 <p>This command will add and persist a user in the database. The command will fail if there is an existing user with the same username. If there is existing cookies related to this username (maybe the user was authenticated through LDAP in the past), the command will also fail. If TOTP is required for this user, the application will attempt to print the TOTP secret QR code in the terminal using the <a href="https://github.com/fukuchi/libqrencode">QRencode</a> library.</p>
 <h3 id='command-flags'>Command flags</h3>
@@ -377,10 +377,6 @@
 <tr>
 <td>-u, --username</td>
 <td>Required. Username of the new user.</td>
-</tr>
-<tr>
-<td>-p, --password</td>
-<td>Required. Password of the new user.</td>
 </tr>
 <tr>
 <td>-o, --otp</td>
@@ -412,7 +408,7 @@
 <div class="highlight"><pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
   </span><span class="p">{</span><span class="w">
     </span><span class="nl">"username"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foo"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$2a$04$P/PP2/wTdzwAZJphoWJjE.srUTKPbIA2If19WBmHrZ0E9As.0TilO"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$argon2id$v=19$m=65536,t=3,p=2$Bd+sfX0eZgOs7K7siUCBkw$bQgNDTpWba/sRVap2XLERYSRqIdKJNwrZ8p6NLaTivI"</span><span class="p">,</span><span class="w">
     </span><span class="nl">"otpSecret"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
   </span><span class="p">}</span><span class="w">
 </span><span class="p">]</span><span class="w">
@@ -428,7 +424,7 @@
 </span><span class="p">[</span><span class="w">
   </span><span class="p">{</span><span class="w">
     </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Nginx-Auth-Server-Token"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$2a$04$lPwzADvbNB2jkNo5l8uNAO8BFmbe6jvXLG649L3VG7VRtCtuU8GKi"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$argon2id$v=19$m=65536,t=3,p=2$HxNb9hVhYTBoWl2zhGeSfQ$JmHQKgh5swQ9moBLobOyaVaV6Hu2Ol8l90ErwFiq2CM"</span><span class="p">,</span><span class="w">
     </span><span class="nl">"expires"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2022-07-30T22:09:27.1577237+02:00"</span><span class="p">,</span><span class="w">
     </span><span class="nl">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost"</span><span class="p">,</span><span class="w">
     </span><span class="nl">"username"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foo"</span><span class="p">,</span><span class="w">
@@ -446,7 +442,14 @@
 <p>nginx-auth-server uses cookies to authorize with the API. The cookie is set by the server in the response of a successful login (see <a href="#login-form">login</a>).</p>
 <h2 id='authenticate'>Authenticate</h2><div class="highlight"><pre class="highlight javascript tab-javascript"><code><span class="nx">fetch</span><span class="p">(</span><span class="dl">"</span><span class="s2">http://localhost:17397/auth</span><span class="dl">"</span><span class="p">)</span>
 </code></pre></div>
-<p>This endpoint checks if the client is authenticated.</p>
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"expires"</span><span class="p">:</span><span class="w"> </span><span class="mi">1664569392952</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint checks if the client is authenticated. The cookie expiration timestamp is returned if the authentication was successful.</p>
 <h3 id='http-request'>HTTP Request</h3>
 <p><code>GET http://localhost:17397/auth</code></p>
 <h3 id='http-status-codes'>HTTP status codes</h3>
@@ -462,7 +465,7 @@
 </tr>
 <tr>
 <td>401</td>
-<td>Client is not authenticated or the auth cookie expired.</td>
+<td>Client is not authenticated or the auth cookie expired/invalid.</td>
 </tr>
 </tbody></table>
 <h2 id='login-html'>Login (HTML)</h2><div class="highlight"><pre class="highlight javascript tab-javascript"><code><span class="nx">fetch</span><span class="p">(</span><span class="dl">"</span><span class="s2">http://localhost:17397/login</span><span class="dl">"</span><span class="p">)</span>
