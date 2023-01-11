@@ -2,10 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [0.0.7] - tbd
+- Docker support
+- support for HTTPS/TLS
 - password parameter removed from user creation to avoid bash/zsh entries with plain text passwords
-- a password prompt is used now instead of the password parameter
 - expired cookies are automatically deleted from the database and cache now
-- check for existing users before user creation
+- check for existing (LDAP) users before user creation
 
 ## [0.0.6] - 2023-01-05
 - updated security (*argon2* is being used instead of *bcrypt* now)
