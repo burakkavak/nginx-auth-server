@@ -18,7 +18,7 @@ import (
 var app = &cli.App{
 	Name:                 "nginx-auth-server",
 	Usage:                "simple authentication server designed to be used in conjunction with nginx 'http_auth_request_module'. Written in Go.",
-	Version:              "0.0.6",
+	Version:              "0.0.7",
 	EnableBashCompletion: true,
 	Authors: []*cli.Author{
 		{

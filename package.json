@@ -1,6 +1,6 @@
 {
   "name": "nginx-auth-server",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "src/js/main.js",
   "scripts": {
     "build": "sass --load-path=node_modules/ --style=compressed --no-source-map ./src/scss/main.scss ./src/css/main.css && webpack --mode=production",

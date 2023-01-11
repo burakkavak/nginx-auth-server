@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.0.7] - tbd
+## [0.0.7] - 2023-01-11
 - Docker support
 - support for HTTPS/TLS
 - password parameter removed from user creation to avoid bash/zsh entries with plain text passwords
