@@ -6,7 +6,7 @@ services:
     container_name: nginx-auth-server
 #    the environment variables are all optional, the defaults apply unless they are overridden here
     environment:
-      - SERVER_DOMAIN=localhost
+      - SERVER_DOMAIN=localhost # Change this to your actual domain ('example.org')
 #      - TLS_ENABLED=false
 #      - TLS_CERT_PATH=/opt/nginx-auth-server/certs/server.crt
 #      - TLS_CERT_KEY=/opt/nginx-auth-server/certs/server.key
@@ -18,7 +18,8 @@ services:
 #      - RECAPTCHA_ENABLED=false
 #      - RECAPTCHA_SITE_KEY=
 #      - RECAPTCHA_SECRET_KEY=
-#    volumes:
+    volumes:
+      - ./nginx-auth-server.db:/opt/nginx-auth-server/nginx-auth-server.db
 #      - ./certs:/opt/nginx-auth-server/certs
     ports:
       - "17397:17397" # HTTP port

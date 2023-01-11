@@ -37,12 +37,21 @@ $ cd ~/docker/nginx-auth-server
 $ wget --content-disposition https://raw.githubusercontent.com/burakkavak/nginx-auth-server/master/docker-compose.yml
 ```
 
+Create an empty database file in the same directory to persist the database between container restarts:
+
+```shell
+$ touch nginx-auth-server.db
+$ chmod 600 nginx-auth-server.db
+```
+
 Start the container:
 ```shell
 $ docker-compose up -d
 ```
 
-You can now call the CLI using *docker exec*. Please refer to the [CLI reference](https://burakkavak.github.io/nginx-auth-server/#command-line-interface-cli) for all commands. Here are some examples:
+You can now point a NGINX server to this docker container, please refer to the '[Native](#native)' section for a NGINX configuration example.
+
+The CLI is called using *docker exec*. Please refer to the [CLI reference](https://burakkavak.github.io/nginx-auth-server/#command-line-interface-cli) for all commands. Here are some examples:
 ```shell
 # docker exec -it <container_name> nginx-auth-server <command_parameters>
 $ docker exec -it nginx-auth-server nginx-auth-server user add --username foo
