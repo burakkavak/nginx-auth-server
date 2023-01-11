@@ -1,0 +1,26 @@
+---
+version: "2.1"
+services:
+  nginx-auth-server:
+    image: burakkavak/nginx-auth-server:latest
+    container_name: nginx-auth-server
+#    the environment variables are all optional, the defaults apply unless they are overridden here
+    environment:
+      - SERVER_DOMAIN=localhost
+#      - TLS_ENABLED=false
+#      - TLS_CERT_PATH=/opt/nginx-auth-server/certs/server.crt
+#      - TLS_CERT_KEY=/opt/nginx-auth-server/certs/server.key
+#      - COOKIES_LIFETIME=7
+#      - LDAP_ENABLED=false
+#      - LDAP_URL=
+#      - LDAP_ORGANIZATIONAL_UNIT=users
+#      - LDAP_DOMAIN_COMPONENTS=
+#      - RECAPTCHA_ENABLED=false
+#      - RECAPTCHA_SITE_KEY=
+#      - RECAPTCHA_SECRET_KEY=
+#    volumes:
+#      - ./certs:/opt/nginx-auth-server/certs
+    ports:
+      - "17397:17397" # HTTP port
+#      - "17760:17760" # TLS/HTTPS port
+    restart: unless-stopped
