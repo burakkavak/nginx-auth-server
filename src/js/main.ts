@@ -1,6 +1,7 @@
 import LoginForm from './loginForm';
 import Recaptcha from './recaptcha';
 import SessionNotice from './sessionNotice';
+import PasswordInput from './passwordInput';
 
 // Initialize Google reCAPTCHA if the container is set in the template
 if (document.querySelector('#g-recaptcha')) {
@@ -19,3 +20,5 @@ const loginForm = <HTMLFormElement>document.querySelector('form.login-form');
 if (loginForm) {
   LoginForm.init(loginForm);
 }
+
+PasswordInput.init();
