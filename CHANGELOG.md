@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.8] - tbd
+- added 'show password' functionality in the login form
+
 ## [0.0.7] - 2023-01-11
 - Docker support
 - support for HTTPS/TLS
