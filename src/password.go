@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
+	"runtime"
 	"strings"
 )
 
@@ -56,10 +57,16 @@ func GeneratePassword(passwordLength, minNum, minUpperCase int) string {
 }
 
 func GenerateHash(password string) string {
+	parallelism := runtime.NumCPU() * 2
+
+	if parallelism > 255 {
+		parallelism = 255
+	}
+
 	params := &argonParams{
 		memory:      64 * 1024,
 		iterations:  3,
-		parallelism: 2,
+		parallelism: uint8(parallelism),
 		saltLength:  16,
 		keyLength:   32,
 	}
