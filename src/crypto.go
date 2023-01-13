@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	"log"
 )
 
 func createHash(key string) string {
@@ -21,13 +20,13 @@ func Encrypt(data []byte, passphrase string) []byte {
 	gcm, err := cipher.NewGCM(block)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		appLog.Fatal(err.Error())
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Fatal(err.Error())
+		appLog.Fatal(err.Error())
 	}
 
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
@@ -40,13 +39,13 @@ func Decrypt(data []byte, passphrase string) []byte {
 	block, err := aes.NewCipher(key)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		appLog.Fatal(err.Error())
 	}
 
 	gcm, err := cipher.NewGCM(block)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		appLog.Fatal(err.Error())
 	}
 
 	nonceSize := gcm.NonceSize()
@@ -54,7 +53,7 @@ func Decrypt(data []byte, passphrase string) []byte {
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		appLog.Fatal(err.Error())
 	}
 
 	return plaintext

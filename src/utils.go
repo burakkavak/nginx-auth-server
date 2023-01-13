@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -19,7 +18,7 @@ func GetExecutableDirectory() string {
 	ex, err := os.Executable()
 
 	if err != nil {
-		log.Fatalf("fatal error: could not get parent directory of the executed binary. %s", err)
+		appLog.Fatalf("fatal error: could not get parent directory of the executed binary. %s\n", err)
 	}
 
 	exPath := filepath.Dir(ex)

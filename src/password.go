@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"math/rand"
 	"strings"
 )
@@ -68,7 +67,7 @@ func GenerateHash(password string) string {
 	salt, err := GenerateRandomBytes(params.saltLength)
 
 	if err != nil {
-		log.Fatal("an error occurred while trying to generate a random salt.")
+		appLog.Fatal("an error occurred while trying to generate a random salt.")
 	}
 
 	hash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
@@ -150,7 +149,7 @@ func decodeArgonHash(encodedHash string) (p *argonParams, salt, hash []byte, err
 
 func CheckPasswordRequirements(password string) error {
 	if len(password) < 6 {
-		return errors.New("password length must exceed 6 or more")
+		return errors.New("error: password length must exceed 6 or more")
 	}
 
 	return nil

@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	bolt "go.etcd.io/bbolt"
-	"log"
 )
 
 func initDatabase() *bolt.DB {
-	db, err := bolt.Open(fmt.Sprintf("%s/nginx-auth-server.db", GetExecutableDirectory()), 0600, nil)
+	db, err := bolt.Open(fmt.Sprintf("%s/nginx-auth-server.db", GetExecutableDirectory()), 0660, nil)
 
 	if err != nil {
-		log.Fatal("could not open/create database. check working directory permissions")
+		appLog.Fatalf("could not open/create database. %s\n", err)
 	}
 
 	return db

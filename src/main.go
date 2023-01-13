@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -32,7 +31,7 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		fmt.Printf(err.Error())
 	}
 }
 
@@ -56,11 +55,11 @@ func runGin() {
 		address := GetListenAddress() + ":" + strconv.Itoa(GetTlsListenPort())
 
 		if err = CheckFileReadable(GetTlsCertPath()); err != nil {
-			log.Fatalf("fatal error: TLS certificate at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsCertPath())
+			appLog.Fatalf("fatal error: TLS certificate at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsCertPath())
 		}
 
 		if err = CheckFileReadable(GetTlsKeyPath()); err != nil {
-			log.Fatalf("fatal error: TLS key at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsKeyPath())
+			appLog.Fatalf("fatal error: TLS key at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsKeyPath())
 		}
 
 		fmt.Printf("listening and serving HTTPS request on %s\n", address)
@@ -78,11 +77,11 @@ func runGin() {
 
 func addUser(username string, password string, otp bool) {
 	if username == "" {
-		log.Fatalf("invalid username")
+		appLog.Fatalf("invalid username")
 	}
 
 	if GetUserByUsernameCaseInsensitive(username) != nil {
-		log.Fatalf("user with username %s already exists", username)
+		appLog.Fatalf("user with username %s already exists", username)
 	}
 
 	if password == "" {
@@ -92,7 +91,7 @@ func addUser(username string, password string, otp bool) {
 
 		addUser(username, generatedPassword, otp)
 	} else if err := CheckPasswordRequirements(password); err != nil {
-		log.Fatalf("password does not meet minimum requirements: %s", err)
+		appLog.Fatalf("password does not meet minimum requirements: %s", err)
 	} else {
 		encodedPasswordHash := GenerateHash(password)
 
@@ -105,7 +104,7 @@ func addUser(username string, password string, otp bool) {
 			})
 
 			if err != nil {
-				log.Fatalf("could not create TOTP: %s", err)
+				appLog.Fatalf("could not create TOTP: %s", err)
 			}
 
 			fmt.Printf("TOTP secret key for user '%s': '%s'\n", username, otpKey.Secret())
@@ -132,9 +131,9 @@ func addUser(username string, password string, otp bool) {
 		err = CreateUser(&user)
 
 		if err != nil {
-			log.Fatalf("could not save user to database: %s", err)
+			appLog.Fatalf("fatal error: could not save user to database: %s", err)
 		} else {
-			fmt.Printf("user with username '%s' successfully created\n", username)
+			appLog.Printf("user with username '%s' successfully created\n", username)
 		}
 	}
 }
@@ -143,17 +142,17 @@ func removeUser(username string) {
 	err := RemoveUser(username)
 
 	if err != nil {
-		log.Fatalf("could not remove user from database: %s", err)
+		appLog.Fatalf("fatal error: could not remove user from database: %s", err)
 	} else {
-		fmt.Printf("user with username '%s' has been removed\n", username)
+		appLog.Printf("user with username '%s' has been removed\n", username)
 	}
 
 	err = DeleteCookiesByUsername(username)
 
 	if err != nil {
-		log.Fatalf("could not remove user associated cookies from database for username '%s': %s\n", username, err)
+		appLog.Fatalf("fatal error: could not remove user associated cookies from database for username '%s': %s\n", username, err)
 	} else {
-		fmt.Printf("user associated cookies for username '%s' have been removed\n", username)
+		appLog.Printf("user associated cookies for username '%s' have been removed\n", username)
 	}
 }
 
@@ -194,6 +193,8 @@ func logout(c *gin.Context) {
 
 		if err != nil || cookie == nil {
 			c.AbortWithError(http.StatusInternalServerError, errors.New("could not delete user cookie from database"))
+			authLog.Fatalf("error: user with username '%s' and client IP '%s' tried logging out,"+
+				"but the associated authentication cookie could not be deleted from the database. %s\n", cookie.Username, c.ClientIP(), err)
 			return
 		} else {
 			http.SetCookie(c.Writer, &http.Cookie{
@@ -204,6 +205,7 @@ func logout(c *gin.Context) {
 			})
 
 			c.String(http.StatusOK, "user successfully logged out")
+			authLog.Printf("user with username '%s' and client IP '%s' successfully logged out\n", cookie.Username, c.ClientIP())
 			return
 		}
 	} else {
@@ -264,7 +266,7 @@ func processLoginForm(c *gin.Context) {
 		err = json.Unmarshal(responseBody, &response)
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, gin.H{"error": "could not unserialize reCAPTCHA verification response from Google"})
+			c.AbortWithStatusJSON(500, gin.H{"error": "could not deserialize reCAPTCHA verification response from Google"})
 			return
 		}
 
@@ -280,6 +282,7 @@ func processLoginForm(c *gin.Context) {
 		if ldapAuthenticate(data.Username, data.Password) {
 			createAndSetAuthCookie(c, data.Username)
 			c.Status(200)
+			authLog.Printf("LDAP user with username '%s' and client IP '%s' logged in successfully\n", data.Username, c.ClientIP())
 		} else {
 			c.AbortWithStatus(401)
 			return
@@ -287,6 +290,7 @@ func processLoginForm(c *gin.Context) {
 	} else {
 		if CompareHashAndPassword(user.Password, data.Password) != nil {
 			c.AbortWithStatus(401)
+			authLog.Printf("invalid password for user with username '%s' and client IP '%s'\n", data.Username, c.ClientIP())
 			return
 		} else {
 			if len(user.OtpSecret) != 0 {
@@ -304,6 +308,7 @@ func processLoginForm(c *gin.Context) {
 
 			cookie := createAndSetAuthCookie(c, user.Username)
 			c.JSON(200, gin.H{"expires": cookie.Expires.UnixMilli()})
+			authLog.Printf("user with username '%s' and client IP '%s' logged in successfully\n", data.Username, c.ClientIP())
 		}
 	}
 }
@@ -322,7 +327,7 @@ func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	err := SaveCookie(cookie)
 
 	if err != nil {
-		log.Fatalf("error while trying to save the cookie to the database: %s", err)
+		appLog.Fatalf("error while trying to save the cookie to the database: %s", err)
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{

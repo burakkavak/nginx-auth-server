@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"syscall"
@@ -69,7 +68,7 @@ var app = &cli.App{
 							answer := promptYesNo("Do you want to continue creating a local user?")
 
 							if !answer {
-								return nil
+								return errors.New("user creation canceled")
 							}
 
 						}
@@ -77,7 +76,7 @@ var app = &cli.App{
 						password, err := promptPasswordInput()
 
 						if err != nil {
-							return errors.New("error: password input failed")
+							return err
 						}
 
 						addUser(username, password, cCtx.Bool("otp"))
@@ -180,11 +179,10 @@ var app = &cli.App{
 						}
 
 						if err != nil {
-							log.Fatalf("error: could not delete cookies: %s", err)
-						} else {
-							fmt.Printf("deleted all cookies from database\n")
+							return fmt.Errorf("error: could not delete cookies: %s\n", err)
 						}
 
+						fmt.Printf("deleted all cookies from database\n")
 						return nil
 					},
 				},
@@ -207,7 +205,8 @@ func promptYesNo(message string) bool {
 		answer = strings.TrimSpace(answer)
 
 		if err != nil {
-			log.Fatalf("fatal error: could not read user input: %s", err)
+			fmt.Printf("error: could not read user input: %s", err)
+			os.Exit(1)
 		}
 	}
 
@@ -236,7 +235,7 @@ func promptPasswordInput() (string, error) {
 	fmt.Print("\n")
 
 	if bytes.Compare(bytePassword, byteRepeatPassword) != 0 {
-		return "", errors.New("error: password mismatch")
+		return "", fmt.Errorf("error: password mismatch\n")
 	}
 
 	password := string(bytePassword)

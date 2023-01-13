@@ -99,6 +99,7 @@ func GetCookiesByUsername(username string) []Cookie {
 }
 
 // GetCookieByValue Looks up cookie in database and returns the cookie if found. Returns nil if the cookie was not found.
+// TODO: function performance is horrible, matching the plain cookie value to all argon hashes in the database takes too long
 func GetCookieByValue(cookieValue string) *Cookie {
 	cookies := GetCookies()
 

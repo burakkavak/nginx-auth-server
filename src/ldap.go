@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/go-ldap/ldap/v3"
 )
 
@@ -19,7 +17,7 @@ func ldapAuthenticate(username string, password string) bool {
 	err := l.Bind(fmt.Sprintf("CN=%s,ou=%s,%s", username, GetLDAPOrganizationalUnit(), GetLDAPDomainComponents()), password)
 
 	if err != nil {
-		log.Printf("error validating credentials: %s\n", err)
+		appLog.Printf("error validating credentials: %s\n", err)
 		return false
 	}
 
@@ -47,7 +45,7 @@ func ldapCheckUserExists(username string) bool {
 	})
 
 	if err != nil {
-		log.Printf("error searching LDAP user with username '%s': %s\n", username, err)
+		appLog.Printf("error searching LDAP user with username '%s': %s\n", username, err)
 		return false
 	}
 
@@ -71,7 +69,7 @@ func ldapConnect() *ldap.Conn {
 	l, err = ldap.DialURL(GetLDAPUrl())
 
 	if err != nil {
-		log.Printf("error trying to connect to LDAP server: %s\n", err)
+		appLog.Printf("error trying to connect to LDAP server: %s\n", err)
 		return nil
 	} else {
 		return l
