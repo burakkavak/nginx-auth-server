@@ -316,7 +316,7 @@ func processLoginForm(c *gin.Context) {
 func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	cookie := Cookie{
 		Name:     "Nginx-Auth-Server-Token",
-		Value:    GeneratePassword(192, 45, 90),
+		Value:    GeneratePassword(96, 25, 35),
 		Expires:  time.Now().AddDate(0, 0, GetCookieLifetime()),
 		Domain:   GetDomain(),
 		Username: username,
