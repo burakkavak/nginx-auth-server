@@ -91,7 +91,8 @@ func addUser(username string, password string, otp bool) {
 
 		addUser(username, generatedPassword, otp)
 	} else if err := CheckPasswordRequirements(password); err != nil {
-		appLog.Fatalf("password does not meet minimum requirements: %s", err)
+		fmt.Printf("password does not meet minimum requirements: %s\n", err)
+		return
 	} else {
 		encodedPasswordHash := GenerateHash(password)
 
@@ -157,9 +158,14 @@ func removeUser(username string) {
 }
 
 func authenticate(c *gin.Context) {
-	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err != nil || VerifyCookie(cookieValue) != nil {
+	if err != nil {
+		c.AbortWithStatus(401)
+		return
+	}
+
+	if _, err = VerifyCookie(token); err != nil {
 		c.AbortWithStatus(401)
 		return
 	} else {
@@ -170,12 +176,14 @@ func authenticate(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err == nil && VerifyCookie(cookieValue) == nil {
-		// user already authorized
-		c.Status(200)
-		return
+	if err == nil {
+		if _, err = VerifyCookie(token); err == nil {
+			// user already authorized
+			c.Status(200)
+			return
+		}
 	}
 
 	c.HTML(http.StatusOK, "login.html", gin.H{
@@ -185,23 +193,30 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err == nil && VerifyCookie(cookieValue) == nil {
-		cookie := GetCookieByValue(cookieValue)
-		err := DeleteCookieByValue(cookieValue)
+	if err != nil {
+		c.AbortWithStatus(401)
+		return
+	}
 
-		if err != nil || cookie == nil {
+	if cookie, err := VerifyCookie(token); err == nil {
+		DeleteCookieFromCache(cookie)
+		err := DeleteCookie(cookie)
+
+		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, errors.New("could not delete user cookie from database"))
-			authLog.Fatalf("error: user with username '%s' and client IP '%s' tried logging out,"+
+			authLog.Printf("error: user with username '%s' and client IP '%s' tried logging out,"+
 				"but the associated authentication cookie could not be deleted from the database. %s\n", cookie.Username, c.ClientIP(), err)
 			return
 		} else {
 			http.SetCookie(c.Writer, &http.Cookie{
-				Name:    cookie.Name,
-				Value:   cookie.Value,
-				Expires: time.Now(),
-				Domain:  cookie.Domain,
+				Name:     cookie.Name,
+				Value:    fmt.Sprintf("$username=%s,$value=%s", cookie.Username, cookie.Value),
+				Expires:  time.Now(),
+				Domain:   cookie.Domain,
+				HttpOnly: cookie.HttpOnly,
+				Secure:   cookie.Secure,
 			})
 
 			c.String(http.StatusOK, "user successfully logged out")
@@ -209,7 +224,8 @@ func logout(c *gin.Context) {
 			return
 		}
 	} else {
-		c.AbortWithError(http.StatusUnauthorized, errors.New("user not logged in"))
+		c.AbortWithError(http.StatusUnauthorized, errors.New("user not logged in or invalid/expired cookie provided"))
+		return
 	}
 }
 
@@ -227,12 +243,14 @@ type RecaptchaResponse struct {
 }
 
 func processLoginForm(c *gin.Context) {
-	requestCookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err == nil && VerifyCookie(requestCookieValue) == nil {
-		// user already authorized
-		c.Status(200)
-		return
+	if err == nil {
+		if _, err = VerifyCookie(token); err == nil {
+			// user already authorized
+			c.Status(200)
+			return
+		}
 	}
 
 	var data LoginFormData
@@ -314,9 +332,11 @@ func processLoginForm(c *gin.Context) {
 }
 
 func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
+	plainCookieValue := GeneratePassword(96, 25, 35)
+
 	cookie := Cookie{
 		Name:     "Nginx-Auth-Server-Token",
-		Value:    GeneratePassword(96, 25, 35),
+		Value:    GenerateHash(plainCookieValue),
 		Expires:  time.Now().AddDate(0, 0, GetCookieLifetime()),
 		Domain:   GetDomain(),
 		Username: username,
@@ -327,32 +347,38 @@ func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	err := SaveCookie(cookie)
 
 	if err != nil {
-		appLog.Fatalf("error while trying to save the cookie to the database: %s", err)
+		appLog.Fatalf("fatal error: could not save the cookie to the database: %s", err)
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     cookie.Name,
-		Value:    cookie.Value,
+		Value:    fmt.Sprintf("$username=%s,$value=%s", username, plainCookieValue),
 		Expires:  cookie.Expires,
 		Domain:   cookie.Domain,
 		HttpOnly: cookie.HttpOnly,
 		Secure:   cookie.Secure,
 	})
 
+	SaveCookieToCache(&cookie, plainCookieValue)
+
 	return cookie
 }
 
 func whoami(c *gin.Context) {
-	cookieValue, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
-	if err != nil || VerifyCookie(cookieValue) != nil {
+	if err != nil {
 		c.AbortWithStatus(401)
-		return
-	} else {
-		cookie := GetCookieByValue(cookieValue)
-
-		c.JSON(200, gin.H{"username": cookie.Username})
 		return
 	}
 
+	cookie, err := VerifyCookie(token)
+
+	if err != nil {
+		c.AbortWithStatus(401)
+		return
+	} else {
+		c.JSON(200, gin.H{"username": cookie.Username})
+		return
+	}
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	bolt "go.etcd.io/bbolt"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -19,10 +21,6 @@ type Cookie struct {
 }
 
 func SaveCookie(cookie Cookie) error {
-	encodedCookieHash := GenerateHash(cookie.Value)
-
-	cookie.Value = encodedCookieHash
-
 	db := initDatabase()
 	defer db.Close()
 
@@ -99,19 +97,22 @@ func GetCookiesByUsername(username string) []Cookie {
 }
 
 // GetCookieByValue Looks up cookie in database and returns the cookie if found. Returns nil if the cookie was not found.
-// TODO: function performance is horrible, matching the plain cookie value to all argon hashes in the database takes too long
-func GetCookieByValue(cookieValue string) *Cookie {
-	cookies := GetCookies()
+func GetCookieByValue(cookieValue string, username *string) *Cookie {
+	var cookies []Cookie
 
-	return func() *Cookie {
-		for _, cookie := range cookies {
-			if CompareHashAndPassword(cookie.Value, cookieValue) == nil {
-				return &cookie
-			}
+	if username != nil {
+		cookies = GetCookiesByUsername(*username)
+	} else {
+		cookies = GetCookies()
+	}
+
+	for _, cookie := range cookies {
+		if CompareHashAndPassword(cookie.Value, cookieValue) == nil {
+			return &cookie
 		}
+	}
 
-		return nil
-	}()
+	return nil
 }
 
 func PurgeCookies() error {
@@ -142,16 +143,6 @@ func DeleteCookie(cookie *Cookie) error {
 	})
 }
 
-func DeleteCookieByValue(cookieValue string) error {
-	cookie := GetCookieByValue(cookieValue)
-
-	if cookie == nil {
-		return errors.New("error: cannot find cookie in database")
-	} else {
-		return DeleteCookie(cookie)
-	}
-}
-
 // DeleteCookiesByUsername :: Delete all cookies for a given username
 func DeleteCookiesByUsername(username string) error {
 	db := initDatabase()
@@ -177,22 +168,46 @@ func DeleteCookiesByUsername(username string) error {
 	})
 }
 
-// VerifyCookie :: Returns nil if the cookie is valid
-func VerifyCookie(cookieValue string) error {
-	cookie := GetCookieFromCache(cookieValue)
+// VerifyCookie :: Returns the cookie and nil if the cookie is valid
+func VerifyCookie(token string) (*Cookie, error) {
+	username, hash := DecodeAuthToken(token)
+
+	cookie := GetCookieFromCache(hash)
 
 	if cookie == nil {
-		cookie = GetCookieByValue(cookieValue)
+		cookie = GetCookieByValue(hash, username)
 	}
 
 	if cookie == nil {
-		return errors.New("error: cookie not found")
+		return nil, errors.New("error: cookie not found")
 	} else if cookie.Expires.Before(time.Now()) {
-		DeleteCookie(cookie)
-		DeleteCookieFromCache(cookie)
-		return errors.New("error: cookie is expired and was deleted")
+		err := DeleteCookie(cookie)
+
+		if err != nil {
+			return nil, errors.New("error: could not delete expired cookie from database")
+		} else {
+			DeleteCookieFromCache(cookie)
+			return nil, errors.New("error: cookie is expired and was deleted")
+		}
 	} else {
-		SaveCookieToCache(cookie, cookieValue)
-		return nil
+		SaveCookieToCache(cookie, hash)
+		return cookie, nil
+	}
+}
+
+func DecodeAuthToken(token string) (username *string, cookieValue string) {
+	// if cookie value follows the new syntax ($username=<username>,$value=<value>), match the username and hash.
+	// filtering the cookies by username before matching the plain cookie value to the argon hash
+	// in the database improves performance
+	if strings.HasPrefix(token, "$username") {
+		regex := regexp.MustCompile(`\$username=(?P<username>.+?),\$value=(?P<value>.+)`)
+		matches := regex.FindStringSubmatch(token)
+
+		username = &matches[regex.SubexpIndex("username")]
+		cookieValue = matches[regex.SubexpIndex("value")]
+
+		return username, cookieValue
+	} else {
+		return nil, token
 	}
 }

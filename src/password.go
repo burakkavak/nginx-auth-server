@@ -65,7 +65,7 @@ func GenerateHash(password string) string {
 
 	params := &argonParams{
 		memory:      64 * 1024,
-		iterations:  3,
+		iterations:  2,
 		parallelism: uint8(parallelism),
 		saltLength:  16,
 		keyLength:   32,
@@ -83,9 +83,7 @@ func GenerateHash(password string) string {
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
-	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, params.memory, params.iterations, params.parallelism, b64Salt, b64Hash)
-
-	return string(encodedHash)
+	return fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, params.memory, params.iterations, params.parallelism, b64Salt, b64Hash)
 }
 
 func CompareHashAndPassword(encodedHash string, password string) error {
@@ -94,10 +92,7 @@ func CompareHashAndPassword(encodedHash string, password string) error {
 	if err != nil {
 		// error trying to decode argon hash
 		// the hash may be a (legacy) bcrypt hash
-
-		err = bcrypt.CompareHashAndPassword([]byte(encodedHash), []byte(password))
-
-		return err
+		return bcrypt.CompareHashAndPassword([]byte(encodedHash), []byte(password))
 	}
 
 	otherHash := argon2.IDKey([]byte(password), salt, params.iterations, params.memory, params.parallelism, params.keyLength)
