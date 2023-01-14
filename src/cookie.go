@@ -5,7 +5,6 @@ import (
 	"errors"
 	bolt "go.etcd.io/bbolt"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -97,14 +96,10 @@ func GetCookiesByUsername(username string) []Cookie {
 }
 
 // GetCookieByValue Looks up cookie in database and returns the cookie if found. Returns nil if the cookie was not found.
-func GetCookieByValue(cookieValue string, username *string) *Cookie {
+func GetCookieByValue(cookieValue string, username string) *Cookie {
 	var cookies []Cookie
 
-	if username != nil {
-		cookies = GetCookiesByUsername(*username)
-	} else {
-		cookies = GetCookies()
-	}
+	cookies = GetCookiesByUsername(username)
 
 	for _, cookie := range cookies {
 		if CompareHashAndPassword(cookie.Value, cookieValue) == nil {
@@ -170,12 +165,16 @@ func DeleteCookiesByUsername(username string) error {
 
 // VerifyCookie :: Returns the cookie and nil if the cookie is valid
 func VerifyCookie(token string) (*Cookie, error) {
-	username, hash := DecodeAuthToken(token)
+	username, cookieValue, err := DecodeAuthToken(token)
 
-	cookie := GetCookieFromCache(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := GetCookieFromCache(cookieValue)
 
 	if cookie == nil {
-		cookie = GetCookieByValue(hash, username)
+		cookie = GetCookieByValue(cookieValue, username)
 	}
 
 	if cookie == nil {
@@ -190,24 +189,25 @@ func VerifyCookie(token string) (*Cookie, error) {
 			return nil, errors.New("error: cookie is expired and was deleted")
 		}
 	} else {
-		SaveCookieToCache(cookie, hash)
+		SaveCookieToCache(cookie, cookieValue)
 		return cookie, nil
 	}
 }
 
-func DecodeAuthToken(token string) (username *string, cookieValue string) {
-	// if cookie value follows the new syntax ($username=<username>,$value=<value>), match the username and hash.
+func DecodeAuthToken(token string) (username string, cookieValue string, err error) {
+	// match the username and cookie value from the new syntax ($username=<username>,$value=<value>)
 	// filtering the cookies by username before matching the plain cookie value to the argon hash
 	// in the database improves performance
-	if strings.HasPrefix(token, "$username") {
-		regex := regexp.MustCompile(`\$username=(?P<username>.+?),\$value=(?P<value>.+)`)
+	regex := regexp.MustCompile(`\$username=(?P<username>.+?),\$value=(?P<value>.+)`)
+
+	if regex.MatchString(token) {
 		matches := regex.FindStringSubmatch(token)
 
-		username = &matches[regex.SubexpIndex("username")]
+		username = matches[regex.SubexpIndex("username")]
 		cookieValue = matches[regex.SubexpIndex("value")]
 
-		return username, cookieValue
+		return username, cookieValue, nil
 	} else {
-		return nil, token
+		return "", "", errors.New("auth token does not match syntax")
 	}
 }
