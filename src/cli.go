@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -56,6 +57,13 @@ var app = &cli.App{
 					},
 					Action: func(cCtx *cli.Context) error {
 						username := cCtx.String("username")
+
+						// check if username is alphanumeric
+						re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
+						if !re.MatchString(username) {
+							return fmt.Errorf("error: only alphanumeric characters allowed for the username\n")
+						}
+
 						existingUser := GetUserByUsernameCaseInsensitive(username)
 
 						if existingUser != nil {
