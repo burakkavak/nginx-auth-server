@@ -139,6 +139,7 @@ export default class LoginForm {
           }, { once: true });
 
           this.totpInput.parentElement.classList.remove('d-none');
+          this.totpInput.focus();
         } else {
           this.usernameInput.setCustomValidity('Invalid credentials.');
           this.passwordInput.setCustomValidity('Invalid credentials.');
