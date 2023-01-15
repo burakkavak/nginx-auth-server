@@ -42,7 +42,8 @@ RUN apkArch="$(apk --print-arch)"; \
     export EXECUTABLE_NAME="${EXECUTABLE_NAME}-linux-${ARCH}" && \
     apk add --no-cache --upgrade \
       wget \
-      tar && \
+      tar \
+      libqrencode && \
     mkdir -p ${BASE_DIR} && \
     wget --content-disposition \
       -O ${BASE_DIR}/nginx-auth-server.tar.gz \
