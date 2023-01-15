@@ -37,13 +37,6 @@ $ cd ~/docker/nginx-auth-server
 $ wget --content-disposition https://raw.githubusercontent.com/burakkavak/nginx-auth-server/master/docker-compose.yml
 ```
 
-Create an empty database file in the same directory to persist the database between container restarts:
-
-```shell
-$ touch nginx-auth-server.db
-$ chmod 600 nginx-auth-server.db
-```
-
 Start the container:
 ```shell
 $ docker-compose up -d
