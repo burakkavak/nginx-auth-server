@@ -60,4 +60,5 @@ RUN apkArch="$(apk --print-arch)"; \
 # ---------------- PORTS ----------------
 EXPOSE ${SERVER_LISTEN_PORT}/tcp ${TLS_LISTEN_PORT}/tcp
 
-CMD $BASE_DIR/docker_run.sh
+ENTRYPOINT [ "docker_run.sh" ]
+CMD [ "nginx-auth-server", "run" ]

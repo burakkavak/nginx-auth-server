@@ -19,7 +19,7 @@ services:
 #      - RECAPTCHA_SITE_KEY=
 #      - RECAPTCHA_SECRET_KEY=
     volumes:
-      - ./nginx-auth-server.db:/opt/nginx-auth-server/nginx-auth-server.db
+      - ./data:/opt/nginx-auth-server/data
 #      - ./certs:/opt/nginx-auth-server/certs
     ports:
       - "17397:17397" # HTTP port

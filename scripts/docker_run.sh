@@ -2,9 +2,6 @@
 
 # This script is used inside the docker container to bootstrap the application.
 
-BASEDIR=/opt/nginx-auth-server
-CONFIG="$BASEDIR/config.ini"
-
 # Rewrite/create config with current environment.
 {
   echo "[Server]"
@@ -32,8 +29,7 @@ CONFIG="$BASEDIR/config.ini"
   echo "enabled = $RECAPTCHA_ENABLED"
   echo "site_key = $RECAPTCHA_SITE_KEY"
   echo "secret_key = $RECAPTCHA_SECRET_KEY"
-} > $CONFIG
+} > "${BASE_DIR}/config.ini"
 
-# run nginx-auth-server
-cd $BASEDIR
-nginx-auth-server run
+# execute Dockerfile 'CMD'
+exec "$@"

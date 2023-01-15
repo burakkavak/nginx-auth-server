@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -12,7 +13,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -49,29 +52,55 @@ func runGin() {
 	router.GET("/logout", logout)
 	router.GET("/whoami", whoami)
 
-	var err error = nil
+	serverAddress := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
+	tlsEnabled := GetTlsEnabled()
+	tlsCertPath := GetTlsCertPath()
+	tlsKeyPath := GetTlsKeyPath()
 
-	if GetTlsEnabled() {
-		address := GetListenAddress() + ":" + strconv.Itoa(GetTlsListenPort())
+	if tlsEnabled {
+		serverAddress = GetListenAddress() + ":" + strconv.Itoa(GetTlsListenPort())
 
-		if err = CheckFileReadable(GetTlsCertPath()); err != nil {
+		if err := CheckFileReadable(tlsCertPath); err != nil {
 			appLog.Fatalf("fatal error: TLS certificate at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsCertPath())
 		}
 
-		if err = CheckFileReadable(GetTlsKeyPath()); err != nil {
+		if err := CheckFileReadable(tlsKeyPath); err != nil {
 			appLog.Fatalf("fatal error: TLS key at '%s' does not exist or is not readable. Check the configuration and/or file permissions.", GetTlsKeyPath())
 		}
-
-		fmt.Printf("listening and serving HTTPS request on %s\n", address)
-		err = router.RunTLS(address, GetTlsCertPath(), GetTlsKeyPath())
-	} else {
-		address := GetListenAddress() + ":" + strconv.Itoa(GetListenPort())
-		fmt.Printf("listening and serving HTTP request on %s\n", address)
-		err = router.Run(address)
 	}
 
-	if err != nil {
-		panic(fmt.Errorf("fatal error trying to launch the webserver: %w", err))
+	server := &http.Server{
+		Addr:    serverAddress,
+		Handler: router,
+	}
+
+	go func() {
+		var err error = nil
+
+		if tlsEnabled {
+			appLog.Printf("listening and serving HTTPS request on %s\n", serverAddress)
+			err = server.ListenAndServeTLS(tlsCertPath, tlsKeyPath)
+		} else {
+			appLog.Printf("listening and serving HTTP request on %s\n", serverAddress)
+			err = server.ListenAndServe()
+		}
+
+		if err != nil && err != http.ErrServerClosed {
+			appLog.Fatalf("fatal error trying to launch the webserver: %s\n", err)
+		}
+	}()
+
+	// gracefully quit Gin server (https://gin-gonic.com/docs/examples/graceful-restart-or-stop/)
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	appLog.Println("Shutting down webserver...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		appLog.Fatalf("fatal error: could not shutdown server gracefully. %s\n", err)
 	}
 }
 
