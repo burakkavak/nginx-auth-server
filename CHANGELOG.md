@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.0.8] - tbd
+## [0.0.8] - 2023-01-15
 - performance optimization to mitigate argon2 performance hit
 - added 'show password' functionality in the login form
 - improved logging: application logs to 'auth.log' and 'app.log' now
