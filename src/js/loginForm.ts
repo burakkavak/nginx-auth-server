@@ -68,10 +68,10 @@ export default class LoginForm {
     }
 
     // save form data
-    const formDataObject = {};
-    const formData = new FormData(form);
-    formData.forEach((value, key) => {
-      formDataObject[key] = value;
+    const formData = {};
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach((input) => {
+      formData[input.id] = input.value;
     });
 
     // replace button text with a spinner while the request is ongoing
@@ -81,7 +81,10 @@ export default class LoginForm {
     this.submitButton.setAttribute('style', `width: ${buttonWidth}px;`);
     this.submitButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
 
-    this.toggleFormState();
+    if (!this.usernameInput.disabled && !this.passwordInput.disabled
+      && !this.submitButton.disabled) {
+      this.toggleFormState();
+    }
 
     let recaptchaToken = '';
 
@@ -98,7 +101,7 @@ export default class LoginForm {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formDataObject,
+          ...formData,
           recaptchaToken, // attach reCAPTCHA token to the request
         }),
       });
@@ -126,8 +129,8 @@ export default class LoginForm {
         const responseText = await response.text();
 
         if (responseText.includes('TOTP')) {
-          this.usernameInput.readOnly = true;
-          this.passwordInput.readOnly = true;
+          this.usernameInput.disabled = true;
+          this.passwordInput.disabled = true;
 
           this.totpInput.setCustomValidity('Invalid TOTP.');
           this.submitButton.disabled = true;
@@ -135,7 +138,7 @@ export default class LoginForm {
           // clear error message after value change on TOTP input
           this.totpInput.addEventListener('input', () => {
             this.totpInput.setCustomValidity('');
-            this.submitButton.disabled = false;
+            this.submitButton.removeAttribute('disabled');
           }, { once: true });
 
           this.totpInput.parentElement.classList.remove('d-none');
@@ -149,13 +152,13 @@ export default class LoginForm {
           this.usernameInput.addEventListener('input', () => {
             this.usernameInput.setCustomValidity('');
             this.passwordInput.setCustomValidity('');
-            this.submitButton.disabled = false;
+            this.submitButton.removeAttribute('disabled');
           }, { once: true });
 
           this.passwordInput.addEventListener('input', () => {
             this.usernameInput.setCustomValidity('');
             this.passwordInput.setCustomValidity('');
-            this.submitButton.disabled = false;
+            this.submitButton.removeAttribute('disabled');
           }, { once: true });
         }
       }
@@ -176,8 +179,8 @@ export default class LoginForm {
 
   /** Disables/enables form, it's inputs and buttons */
   toggleFormState(): void {
-    this.usernameInput.readOnly = !this.usernameInput.readOnly;
-    this.passwordInput.readOnly = !this.passwordInput.readOnly;
+    this.usernameInput.disabled = !this.usernameInput.disabled;
+    this.passwordInput.disabled = !this.passwordInput.disabled;
     this.submitButton.disabled = !this.submitButton.disabled;
   }
 }
