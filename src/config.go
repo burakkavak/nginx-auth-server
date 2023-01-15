@@ -94,13 +94,13 @@ func parse() {
 	file, err := ini.Load(fmt.Sprintf("%s/%s", GetExecutableDirectory(), configFileName))
 
 	if err != nil {
-		panic(fmt.Errorf("fatal error while reading configuration from 'config.ini': %w", err))
+		appLog.Fatalf("fatal error while reading configuration from 'config.ini': %s", err)
 	}
 
 	err = file.MapTo(config)
 
 	if err != nil {
-		panic(fmt.Errorf("fatal error while pasing configuration to types: %w", err))
+		appLog.Fatalf("fatal error while pasing configuration to types: %s", err)
 	}
 
 	parsed = true
