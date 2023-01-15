@@ -341,11 +341,9 @@ func processLoginForm(c *gin.Context) {
 			return
 		} else {
 			if len(user.OtpSecret) != 0 {
-				token := c.PostForm("inputTotp")
-
 				secret := Decrypt(user.OtpSecret, data.Password)
 
-				tokenIsValid := totp.Validate(token, string(secret))
+				tokenIsValid := totp.Validate(data.TOTP, string(secret))
 
 				if !tokenIsValid {
 					c.AbortWithStatusJSON(401, gin.H{"error": "invalid TOTP"})
