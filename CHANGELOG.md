@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 - performance optimization to mitigate argon2 performance hit
 - added 'show password' functionality in the login form
 - improved logging: application logs to 'auth.log' and 'app.log' now
+- fixed long Docker container shutdown time
 
 ## [0.0.7] - 2023-01-11
 - Docker support
