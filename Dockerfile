@@ -34,10 +34,11 @@ ENV RECAPTCHA_SECRET_KEY=""
 
 RUN apkArch="$(apk --print-arch)"; \
     case "$apkArch" in \
-      armhf) export ARCH='arm' ;; \
+      armv7) export ARCH='arm' ;; \
       x86) export ARCH='i386' ;; \
       aarch64) export ARCH='arm64' ;; \
-      *) export ARCH='amd64' ;; \
+      x86_64) export ARCH='amd64' ;; \
+      *) exit 1 ;; \
     esac; \
     export EXECUTABLE_NAME="${EXECUTABLE_NAME}-linux-${ARCH}" && \
     apk add --no-cache --upgrade \
