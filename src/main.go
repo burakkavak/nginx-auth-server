@@ -30,6 +30,8 @@ var staticFiles embed.FS
 
 var GinMode = gin.DebugMode
 
+const AppVersion = "0.0.8"
+
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
