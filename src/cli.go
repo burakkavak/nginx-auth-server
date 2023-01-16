@@ -15,6 +15,8 @@ import (
 	"golang.org/x/term"
 )
 
+// This file implements the CLI using 'urfave/cli'. Refer to https://cli.urfave.org/v2/getting-started/ for documentation.
+
 var app = &cli.App{
 	Name:                 "nginx-auth-server",
 	Usage:                "simple authentication server designed to be used in conjunction with nginx 'http_auth_request_module'. Written in Go.",
@@ -200,6 +202,7 @@ var app = &cli.App{
 	},
 }
 
+// promptYesNo prompts a simple yes/no question with the given message and returns the answer.
 func promptYesNo(message string) bool {
 	answer := "initial"
 	var err error = nil
@@ -226,6 +229,9 @@ func promptYesNo(message string) bool {
 	}
 }
 
+// promptPasswordInput prompts a (hidden) input from the user using term.ReadPassword.
+// Returns an error if the password repeat was a mismatch.
+// If the password does not meet minimum requirements (CheckPasswordRequirements), the prompt is repeated.
 func promptPasswordInput() (string, error) {
 	fmt.Print("Enter password: ")
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))

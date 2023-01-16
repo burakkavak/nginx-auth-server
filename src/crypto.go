@@ -15,6 +15,8 @@ func createHash(key string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+// Encrypt encrypts given data with a given passphrase and returns the encrypted data.
+// This function is used to encrypt the TOTP secret with the user password before saving it to the database.
 func Encrypt(data []byte, passphrase string) []byte {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
@@ -34,6 +36,8 @@ func Encrypt(data []byte, passphrase string) []byte {
 	return ciphertext
 }
 
+// Decrypt decrypts given data with a given passphrase and returns the decrypted data.
+// This function is used to decrypt the TOTP secret with the user password.
 func Decrypt(data []byte, passphrase string) []byte {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
@@ -59,6 +63,8 @@ func Decrypt(data []byte, passphrase string) []byte {
 	return plaintext
 }
 
+// GenerateRandomBytes generated a random number of bytes and returns them.
+// Returns an error if it fails
 func GenerateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)

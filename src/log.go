@@ -7,8 +7,14 @@ import (
 	"os"
 )
 
+// This file handles logic related to logging.
+// The application produces two log files located at <executable_dir>/data/app.log and <executable_dir>/data/auth.log.
+
 var (
-	appLog  *log.Logger
+	// appLog is the logger used for any application related logs (errors, warnings, informative, ...)
+	appLog *log.Logger
+
+	// authLog is the logger used for any authentication related logs (logins, logouts, ...)
 	authLog *log.Logger
 )
 
@@ -17,6 +23,8 @@ func init() {
 	authLog = createLogger("auth.log")
 }
 
+// createLogger creates and returns a log.Logger instance that logs to stdout and additionally the given filename.
+// If the log files are not creatable/writable, a default logger (just stdout) is returned.
 func createLogger(filename string) *log.Logger {
 	logsDirectoryPath := fmt.Sprintf("%s/data", GetExecutableDirectory())
 

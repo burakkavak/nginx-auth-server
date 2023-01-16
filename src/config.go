@@ -6,6 +6,9 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// This file handles any logic regarding the configuration (config.ini).
+// Refer to the go-ini/ini docs (https://ini.unknwon.io/docs).
+
 // Server :: [Server]-Section of .ini
 type Server struct {
 	ListenAddress string `ini:"listen_address"`
@@ -51,7 +54,10 @@ type Config struct {
 }
 
 var (
+	// parsed defines if the config.ini was already parsed
 	parsed = false
+	// config defines the default configuration state and
+	// will be overridden with any changed values in the config.ini
 	config = &Config{
 		Server: Server{
 			ListenAddress: "127.0.0.1",
@@ -87,6 +93,7 @@ const (
 )
 
 func parse() {
+	// don't parse the configuration if it already was parsed
 	if parsed {
 		return
 	}
@@ -97,6 +104,7 @@ func parse() {
 		appLog.Fatalf("fatal error while reading configuration from 'config.ini': %s", err)
 	}
 
+	// map the configuration in config.ini to the data structure
 	err = file.MapTo(config)
 
 	if err != nil {
@@ -105,6 +113,9 @@ func parse() {
 
 	parsed = true
 }
+
+// Getter for all configuration keys.
+// TODO: maybe there is a better way to do this
 
 func GetListenAddress() string {
 	parse()

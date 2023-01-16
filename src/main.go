@@ -22,12 +22,20 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
+// templateFiles contains any files that are served prefixed with the relative URL /nginx-auth-server-static.
+// These files are embedded in the final executable using go:embed.
+//
 //go:embed templates
 var templateFiles embed.FS
 
+// staticFiles contains any files that are served prefixed with the relative URL /nginx-auth-server-static.
+// These files are embedded in the final executable using go:embed.
+//
 //go:embed css/main.css js/app.bundle.js
 var staticFiles embed.FS
 
+// GinMode describes the Gin web framework operating mode. This variable is overwritten in prod.go
+// if the executable is build using the Go build tag 'prod'.
 var GinMode = gin.DebugMode
 
 const AppVersion = "0.0.8"
@@ -40,6 +48,7 @@ func main() {
 	}
 }
 
+// runGin sets up the Gin router and starts the webserver.
 func runGin() {
 	gin.SetMode(GinMode)
 
@@ -59,6 +68,7 @@ func runGin() {
 	tlsCertPath := GetTlsCertPath()
 	tlsKeyPath := GetTlsKeyPath()
 
+	// overwrite serverAddress if TLS is configured and enabled
 	if tlsEnabled {
 		serverAddress = GetListenAddress() + ":" + strconv.Itoa(GetTlsListenPort())
 
@@ -76,6 +86,7 @@ func runGin() {
 		Handler: router,
 	}
 
+	// start the webserver in HTTP or HTTPS mode
 	go func() {
 		var err error = nil
 
@@ -106,6 +117,8 @@ func runGin() {
 	}
 }
 
+// addUser receives the username and plaintext password and adds the new user to the database.
+// If the password is empty, addUser will generate a password.
 func addUser(username string, password string, otp bool) {
 	if username == "" {
 		appLog.Fatalf("invalid username")
@@ -115,6 +128,7 @@ func addUser(username string, password string, otp bool) {
 		appLog.Fatalf("user with username %s already exists", username)
 	}
 
+	// generate password if empty password was given
 	if password == "" {
 		generatedPassword := GeneratePassword(8, 1, 1)
 
@@ -125,6 +139,7 @@ func addUser(username string, password string, otp bool) {
 		fmt.Printf("password does not meet minimum requirements: %s\n", err)
 		return
 	} else {
+		// hash password using argon2 for database storage
 		encodedPasswordHash := GenerateHash(password)
 
 		var encryptedOtpSecret []byte
@@ -141,6 +156,7 @@ func addUser(username string, password string, otp bool) {
 
 			fmt.Printf("TOTP secret key for user '%s': '%s'\n", username, otpKey.Secret())
 
+			// output TOTP url as QR code to stdout using libqrencode
 			output, err := exec.Command("sh", "-c", fmt.Sprintf("qrencode -t UTF8 '%s'", otpKey.URL())).Output()
 
 			fmt.Printf("TOTP URL for user '%s': '%s'\n", username, otpKey.URL())
@@ -151,6 +167,7 @@ func addUser(username string, password string, otp bool) {
 				fmt.Println(string(output))
 			}
 
+			// encrypt TOTP secret using user password for database storage
 			encryptedOtpSecret = Encrypt([]byte(otpKey.Secret()), password)
 		}
 
@@ -170,6 +187,8 @@ func addUser(username string, password string, otp bool) {
 	}
 }
 
+// removeUser removes a user from the database.
+// TODO: don't delete associated user cookies if there is an existing LDAP user with the same username
 func removeUser(username string) {
 	err := RemoveUser(username)
 
@@ -188,6 +207,8 @@ func removeUser(username string) {
 	}
 }
 
+// authenticate handles the /auth route. If a valid cookie is found in the request header, the
+// the response will be 200. If the cookie is invalid or expired, 401 is set as a response status.
 func authenticate(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
@@ -206,6 +227,8 @@ func authenticate(c *gin.Context) {
 
 }
 
+// login handles the /login route. If a valid cookie is found in the request header, the
+// the response will be 200. Otherwise the login form template will be shown.
 func login(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
@@ -223,6 +246,8 @@ func login(c *gin.Context) {
 	})
 }
 
+// logout handles the /logout route. If a valid cookie is found in the request header, the
+// the response will be 200 and the cookie will be deleted.
 func logout(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
@@ -260,6 +285,7 @@ func logout(c *gin.Context) {
 	}
 }
 
+// LoginFormData represents the inputs defined in the login template as a struct.
 type LoginFormData struct {
 	Username       string `json:"inputUsername"`
 	Password       string `json:"inputPassword"`
@@ -267,12 +293,16 @@ type LoginFormData struct {
 	RecaptchaToken string `json:"recaptchaToken"`
 }
 
+// RecaptchaResponse defines the structure of the Google reCAPTCHA verification response as a struct.
 type RecaptchaResponse struct {
 	Success            bool      `json:"success"`
 	ChallengeTimestamp time.Time `json:"challenge_ts"`
 	Hostname           string    `json:"hostname"`
 }
 
+// processLoginForm handles the POST /login route. If the request already contains a valid cookie, 200 is returned.
+// If the user has provided valid credentials in the login form, the response will contain a new cookie (200).
+// If the username, the password, the TOTP token or the reCAPTCHA token is invalid, the request is rejected.
 func processLoginForm(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
@@ -287,6 +317,7 @@ func processLoginForm(c *gin.Context) {
 	var data LoginFormData
 	_ = c.Bind(&data)
 
+	// verify reCAPTCHA token if reCAPTCHA is enabled
 	if GetRecaptchaEnabled() {
 		if data.RecaptchaToken == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bad input for reCAPTCHA token"})
@@ -328,6 +359,7 @@ func processLoginForm(c *gin.Context) {
 	user := GetUserByUsername(data.Username)
 
 	if user == nil {
+		// if a user with the given username does not exist, check if LDAP authenticates
 		if ldapAuthenticate(data.Username, data.Password) {
 			createAndSetAuthCookie(c, data.Username)
 			c.Status(200)
@@ -337,11 +369,13 @@ func processLoginForm(c *gin.Context) {
 			return
 		}
 	} else {
+		// if a user with the given username was found in the database, check password validity
 		if CompareHashAndPassword(user.Password, data.Password) != nil {
 			c.AbortWithStatus(401)
 			authLog.Printf("invalid password for user with username '%s' and client IP '%s'\n", data.Username, c.ClientIP())
 			return
 		} else {
+			// if TOTP is enabled for the user, check the validity of the TOTP token input from the user
 			if len(user.OtpSecret) != 0 {
 				secret := Decrypt(user.OtpSecret, data.Password)
 
@@ -360,6 +394,8 @@ func processLoginForm(c *gin.Context) {
 	}
 }
 
+// createAndSetAuthCookie sets a new cookie for the given gin.Context and username and saves it to the database.
+// This function is called after the user credentials have been verified.
 func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	plainCookieValue := GeneratePassword(96, 25, 35)
 
@@ -393,6 +429,9 @@ func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	return cookie
 }
 
+// whoami handles the /whoami route. If the request contains a valid cookie,
+// 200 and the username (formatted as JSON) is returned.
+// If the cookie in the request header is invalid, 401 Unauthorized is returned.
 func whoami(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 

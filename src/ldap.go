@@ -5,7 +5,10 @@ import (
 	"github.com/go-ldap/ldap/v3"
 )
 
-// ldapAuthenticate returns true if the user was successfully authenticated with the LDAP server
+// This file handles any logic related to the LDAP interface.
+// Refer to the go-ldap/ldap documentation (https://pkg.go.dev/github.com/go-ldap/ldap).
+
+// ldapAuthenticate returns true if the user was successfully authenticated with the LDAP server.
 func ldapAuthenticate(username string, password string) bool {
 	if !GetLDAPEnabled() {
 		return false
@@ -24,6 +27,8 @@ func ldapAuthenticate(username string, password string) bool {
 	return true
 }
 
+// ldapCheckUserExists checks for existing users with the given username.
+// Returns true if a user exists in LDAP with the given username.
 func ldapCheckUserExists(username string) bool {
 	if !GetLDAPEnabled() {
 		return false
@@ -56,6 +61,8 @@ func ldapCheckUserExists(username string) bool {
 	}
 }
 
+// ldapConnect connects to the LDAP server and returns the ldap.Conn.
+// Returns nil if the connection failed.
 func ldapConnect() *ldap.Conn {
 	if !GetLDAPEnabled() {
 		return nil

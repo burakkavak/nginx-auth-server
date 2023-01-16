@@ -8,6 +8,8 @@ import (
 
 var databaseFilePath string
 
+// init will check if the database file is readable/creatable by the application.
+// This function will panic if the database could not be read/created for some reason.
 func init() {
 	databaseFilePath = fmt.Sprintf("%s/nginx-auth-server.db", GetExecutableDirectory())
 
@@ -25,6 +27,8 @@ func init() {
 	}
 }
 
+// initDatabase opens and returns the bbolt database.
+// This function will panic if the database could not be accessed for some reason.
 func initDatabase() *bolt.DB {
 	// TODO: can cause delays on concurrent calls
 	db, err := bolt.Open(databaseFilePath, 0660, nil)

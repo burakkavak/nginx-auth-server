@@ -6,12 +6,14 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// User is the structure for the database representation of a user
 type User struct {
 	Username  string `json:"username"`
-	Password  string `json:"password"`  // Password :: salted & hashed
+	Password  string `json:"password"`  // Password :: argon2id hash
 	OtpSecret []byte `json:"otpSecret"` // OtpSecret :: encrypted OTP secret key
 }
 
+// GetUsers returns all users in the database.
 func GetUsers() []User {
 	db := initDatabase()
 	defer db.Close()
@@ -39,6 +41,7 @@ func GetUsers() []User {
 	return users
 }
 
+// CreateUser adds the given User to the database.
 func CreateUser(user *User) error {
 	if GetUserByUsername(user.Username) != nil {
 		return errors.New("user with username '" + user.Username + "' already exists")
@@ -61,6 +64,7 @@ func CreateUser(user *User) error {
 	})
 }
 
+// RemoveUser finds the user corresponding to the given username and removes the user from the database.
 func RemoveUser(username string) error {
 	if GetUserByUsername(username) == nil {
 		return errors.New("user with username '" + username + "' does not exist")
@@ -77,7 +81,8 @@ func RemoveUser(username string) error {
 	})
 }
 
-// GetUserByUsername Looks up username in database and returns the user if found. Returns nil if the user was not found.
+// GetUserByUsername looks up username in the database and returns the User if found.
+// Returns nil if the user was not found.
 func GetUserByUsername(username string) *User {
 	db := initDatabase()
 	defer db.Close()
@@ -105,6 +110,8 @@ func GetUserByUsername(username string) *User {
 	return user
 }
 
+// GetUserByUsernameCaseInsensitive looks up username (case-insensitive) in the database and returns the User if found.
+// Returns nil if the user was not found.
 func GetUserByUsernameCaseInsensitive(username string) *User {
 	users := GetUsers()
 

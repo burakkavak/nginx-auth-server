@@ -11,7 +11,7 @@ import (
 // Cookie :: refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 type Cookie struct {
 	Name     string    `json:"name"`
-	Value    string    `json:"value"`   // Value :: salted & hashed
+	Value    string    `json:"value"`   // Value :: argon2 hash
 	Expires  time.Time `json:"expires"` // example: 'Wed, 21 Oct 2015 07:28:00 GMT'
 	Domain   string    `json:"domain"`
 	Username string    `json:"username"`
@@ -19,6 +19,8 @@ type Cookie struct {
 	Secure   bool      `json:"secure"`
 }
 
+// SaveCookie saves a cookie to the database.
+// Returns nil if the cookie was saved successfully.
 func SaveCookie(cookie Cookie) error {
 	db := initDatabase()
 	defer db.Close()
@@ -37,6 +39,7 @@ func SaveCookie(cookie Cookie) error {
 	})
 }
 
+// GetCookies fetches all cookies from the database and returns them.
 func GetCookies() []Cookie {
 	db := initDatabase()
 	defer db.Close()
@@ -64,7 +67,7 @@ func GetCookies() []Cookie {
 	return cookies
 }
 
-// GetCookiesByUsername Looks up cookies specific to a user in database and returns the cookies.
+// GetCookiesByUsername looks up cookies specific to a user in database and returns the cookies.
 func GetCookiesByUsername(username string) []Cookie {
 	db := initDatabase()
 	defer db.Close()
@@ -95,7 +98,10 @@ func GetCookiesByUsername(username string) []Cookie {
 	return cookies
 }
 
-// GetCookieByValue Looks up cookie in database and returns the cookie if found. Returns nil if the cookie was not found.
+// GetCookieByValue looks up plaintext cookie value and the corresponding user in the database
+// and returns the cookie if found. This function will try to match the given plaintext cookie value
+// to the argon2 hash saved in the database, therefore it is a time-intensive function.
+// Returns nil if the cookie was not found.
 func GetCookieByValue(cookieValue string, username string) *Cookie {
 	var cookies []Cookie
 
@@ -110,6 +116,7 @@ func GetCookieByValue(cookieValue string, username string) *Cookie {
 	return nil
 }
 
+// PurgeCookies deletes all cookies in the database.
 func PurgeCookies() error {
 	db := initDatabase()
 	defer db.Close()
@@ -119,6 +126,7 @@ func PurgeCookies() error {
 	})
 }
 
+// DeleteCookie deletes a specific Cookie from the database.
 func DeleteCookie(cookie *Cookie) error {
 	if cookie == nil {
 		return errors.New("error: provided cookie is nil")
@@ -138,7 +146,7 @@ func DeleteCookie(cookie *Cookie) error {
 	})
 }
 
-// DeleteCookiesByUsername :: Delete all cookies for a given username
+// DeleteCookiesByUsername deletes all cookies specific to the given username.
 func DeleteCookiesByUsername(username string) error {
 	db := initDatabase()
 	defer db.Close()
@@ -163,7 +171,9 @@ func DeleteCookiesByUsername(username string) error {
 	})
 }
 
-// VerifyCookie :: Returns the cookie and nil if the cookie is valid
+// VerifyCookie returns the Cookie and nil if the given token is valid.
+// Example for token param: '$username=foo,$value=kC6......LOh'.
+// Returns nil and an error if the cookie was not found or expired.
 func VerifyCookie(token string) (*Cookie, error) {
 	username, cookieValue, err := DecodeAuthToken(token)
 
@@ -194,6 +204,9 @@ func VerifyCookie(token string) (*Cookie, error) {
 	}
 }
 
+// DecodeAuthToken decodes the given token and returns the username and plain cookie value.
+// Returns an error if the given token did not match the expected syntax.
+// Example for token param: '$username=foo,$value=kC6......LOh'.
 func DecodeAuthToken(token string) (username string, cookieValue string, err error) {
 	// match the username and cookie value from the new syntax ($username=<username>,$value=<value>)
 	// filtering the cookies by username before matching the plain cookie value to the argon hash
