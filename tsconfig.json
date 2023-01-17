@@ -1,5 +1,5 @@
 {
-  "include": ["src/js/**/*", "webpack.config.js"],
+  "include": ["src/ts/**/*", "webpack.config.js"],
   "compilerOptions": {
     "sourceMap": true,
     "target": "ES2015",
