@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 )
@@ -28,4 +29,22 @@ func GetExecutableDirectory() string {
 	exPath := filepath.Dir(ex)
 
 	return exPath
+}
+
+// GetFilenamesFromFS retrieves all files from the given path
+// of the given embedded filesystem and returns the filenames as an array.
+func GetFilenamesFromFS(fs embed.FS, path string) []string {
+	files, err := fs.ReadDir(path)
+
+	if err != nil {
+		appLog.Fatalf("fatal error: could not read embedded css/js files. %s\n", err)
+	}
+
+	var filenames []string
+
+	for _, file := range files {
+		filenames = append(filenames, file.Name())
+	}
+
+	return filenames
 }

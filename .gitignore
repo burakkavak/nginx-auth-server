@@ -27,12 +27,10 @@ nginx-auth-server.db
 .vscode/
 
 # webpack JavaScript bundle
-src/js/app.bundle.js
-src/js/app.bundle.js.map
+src/js/**
 
 # CSS bundle
-src/css/main.css
-src/css/main.css.map
+src/css/**
 
 # application logs
 data

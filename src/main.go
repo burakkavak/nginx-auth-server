@@ -31,7 +31,7 @@ var templateFiles embed.FS
 // staticFiles contains any files that are served prefixed with the relative URL /nginx-auth-server-static.
 // These files are embedded in the final executable using go:embed.
 //
-//go:embed css/main.css js/app.bundle.js
+//go:embed css js
 var staticFiles embed.FS
 
 // GinMode describes the Gin web framework operating mode. This variable is overwritten in prod.go
@@ -240,7 +240,13 @@ func login(c *gin.Context) {
 		}
 	}
 
+	// attach all embedded CSS/JS files to the HTML template
+	cssFiles := GetFilenamesFromFS(staticFiles, "css")
+	jsFiles := GetFilenamesFromFS(staticFiles, "js")
+
 	c.HTML(http.StatusOK, "login.html", gin.H{
+		"cssFiles":         cssFiles,
+		"jsFiles":          jsFiles,
 		"recaptchaEnabled": GetRecaptchaEnabled(),
 		"recaptchaSiteKey": GetRecaptchaSiteKey(),
 	})

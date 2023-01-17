@@ -8,7 +8,7 @@
     <title>Authentication: Login</title>
 
     <!-- custom css -->
-    <link href="nginx-auth-server-static/css/main.css" rel="stylesheet">
+    {{range .cssFiles}}<link href="nginx-auth-server-static/css/{{.}}" rel="stylesheet">{{end}}
     <!-- FontAwesome -->
     <script src="https://kit.fontawesome.com/27850dec57.js" crossorigin="anonymous"></script>
 </head>
@@ -39,8 +39,7 @@
         </div>
     </div>
     {{if .recaptchaEnabled}}<div id="g-recaptcha" class="g-recaptcha" data-size="invisible" data-sitekey="{{.recaptchaSiteKey}}"></div>{{end}}
-
-    <script src="nginx-auth-server-static/js/app.bundle.js"></script>
+    {{range .jsFiles}}<script src="nginx-auth-server-static/js/{{.}}"></script>{{end}}
     {{if .recaptchaEnabled}}<script src="https://www.google.com/recaptcha/api.js?sitekey={{.recaptchaSiteKey}}&onload=recaptchaOnLoad&render=explicit" async defer></script>{{end}}
 </body>
 </html>

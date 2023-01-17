@@ -3,9 +3,9 @@
   "version": "0.0.8",
   "main": "src/js/main.js",
   "scripts": {
-    "build": "sass --load-path=node_modules/ --style=compressed --no-source-map ./src/scss/main.scss ./src/css/main.css && webpack --mode=production",
-    "watch-scss": "sass --load-path=node_modules/ --watch ./src/scss/main.scss ./src/css/main.css",
-    "watch-ts": "webpack --mode development --watch"
+    "build": "rm ./src/css/* && rm ./src/js/* && sass --load-path=node_modules/ --style=compressed --no-source-map ./src/scss/main.scss ./src/css/main.css && webpack --mode=production && ./scripts/filename_add_hash.sh ./src/css/main.css",
+    "watch-scss": "rm ./src/css/* && sass --load-path=node_modules/ --watch ./src/scss/main.scss ./src/css/main.css",
+    "watch-ts": "rm ./src/js/* && webpack --mode development --watch"
   },
   "dependencies": {
     "bootstrap": "^5.2.3",

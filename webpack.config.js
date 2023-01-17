@@ -16,7 +16,7 @@ module.exports = (env, argv) => {
       extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-      filename: 'app.bundle.js',
+      filename: 'app.bundle.[contenthash].js',
       path: path.resolve(__dirname, 'src/js'),
     },
   };
