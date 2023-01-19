@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
 )
@@ -47,4 +48,16 @@ func GetFilenamesFromFS(fs embed.FS, path string) []string {
 	}
 
 	return filenames
+}
+
+// GetClientIpFromContext retrieves and returns the real client IP from the given Gin context
+// using the 'X-Original-Remote-Addr' header set by NGINX.
+func GetClientIpFromContext(c *gin.Context) string {
+	clientIp := c.GetHeader("X-Original-Remote-Addr")
+
+	if clientIp == "" {
+		appLog.Print("warning: could not determine (real) client IP address - 'X-Original-Remote-Addr' header was not set by nginx")
+	}
+
+	return clientIp
 }

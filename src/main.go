@@ -256,6 +256,7 @@ func login(c *gin.Context) {
 // the response will be 200 and the cookie will be deleted.
 func logout(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	clientIp := GetClientIpFromContext(c)
 
 	if err != nil {
 		c.AbortWithStatus(401)
@@ -269,7 +270,7 @@ func logout(c *gin.Context) {
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, errors.New("could not delete user cookie from database"))
 			authLog.Printf("error: user with username '%s' and client IP '%s' tried logging out,"+
-				"but the associated authentication cookie could not be deleted from the database. %s\n", cookie.Username, c.ClientIP(), err)
+				"but the associated authentication cookie could not be deleted from the database. %s\n", cookie.Username, clientIp, err)
 			return
 		} else {
 			http.SetCookie(c.Writer, &http.Cookie{
@@ -282,7 +283,7 @@ func logout(c *gin.Context) {
 			})
 
 			c.String(http.StatusOK, "user successfully logged out")
-			authLog.Printf("user with username '%s' and client IP '%s' successfully logged out\n", cookie.Username, c.ClientIP())
+			authLog.Printf("user with username '%s' and client IP '%s' successfully logged out\n", cookie.Username, clientIp)
 			return
 		}
 	} else {
@@ -311,6 +312,7 @@ type RecaptchaResponse struct {
 // If the username, the password, the TOTP token or the reCAPTCHA token is invalid, the request is rejected.
 func processLoginForm(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	clientIp := GetClientIpFromContext(c)
 
 	if err == nil {
 		if _, err = VerifyCookie(token); err == nil {
@@ -330,7 +332,7 @@ func processLoginForm(c *gin.Context) {
 			return
 		}
 
-		postBody := bytes.NewBuffer([]byte(fmt.Sprintf("secret=%s&response=%s&remoteip=%s", GetRecaptchaSecretKey(), data.RecaptchaToken, c.ClientIP())))
+		postBody := bytes.NewBuffer([]byte(fmt.Sprintf("secret=%s&response=%s&remoteip=%s", GetRecaptchaSecretKey(), data.RecaptchaToken, clientIp)))
 
 		httpResponse, err := http.Post("https://www.google.com/recaptcha/api/siteverify", "application/x-www-form-urlencoded", postBody)
 
@@ -369,7 +371,7 @@ func processLoginForm(c *gin.Context) {
 		if ldapAuthenticate(data.Username, data.Password) {
 			createAndSetAuthCookie(c, data.Username)
 			c.Status(200)
-			authLog.Printf("LDAP user with username '%s' and client IP '%s' logged in successfully\n", data.Username, c.ClientIP())
+			authLog.Printf("LDAP user with username '%s' and client IP '%s' logged in successfully\n", data.Username, clientIp)
 		} else {
 			c.AbortWithStatus(401)
 			return
@@ -378,7 +380,7 @@ func processLoginForm(c *gin.Context) {
 		// if a user with the given username was found in the database, check password validity
 		if CompareHashAndPassword(user.Password, data.Password) != nil {
 			c.AbortWithStatus(401)
-			authLog.Printf("invalid password for user with username '%s' and client IP '%s'\n", data.Username, c.ClientIP())
+			authLog.Printf("invalid password for user with username '%s' and client IP '%s'\n", data.Username, clientIp)
 			return
 		} else {
 			// if TOTP is enabled for the user, check the validity of the TOTP token input from the user
@@ -395,7 +397,7 @@ func processLoginForm(c *gin.Context) {
 
 			cookie := createAndSetAuthCookie(c, user.Username)
 			c.JSON(200, gin.H{"expires": cookie.Expires.UnixMilli()})
-			authLog.Printf("user with username '%s' and client IP '%s' logged in successfully\n", data.Username, c.ClientIP())
+			authLog.Printf("user with username '%s' and client IP '%s' logged in successfully\n", data.Username, clientIp)
 		}
 	}
 }
