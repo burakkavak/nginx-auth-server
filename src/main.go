@@ -228,14 +228,17 @@ func authenticate(c *gin.Context) {
 }
 
 // login handles the /login route. If a valid cookie is found in the request header, the
-// the response will be 200. Otherwise the login form template will be shown.
+// the response will be 302 redirect to the given 'callback' query param. If no callback is given, the user
+// will be redirected to the root page. If the user is not authenticated,
+// the login form template will be displayed.
 func login(c *gin.Context) {
 	token, err := c.Cookie("Nginx-Auth-Server-Token")
 
 	if err == nil {
 		if _, err = VerifyCookie(token); err == nil {
 			// user already authorized
-			c.Status(200)
+			// refer to: https://github.com/burakkavak/nginx-auth-server/issues/2
+			c.Redirect(302, c.Query("callback"))
 			return
 		}
 	}
