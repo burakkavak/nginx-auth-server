@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.9] - 2023-03-23
+- fixed IP address logging upon authentication to log the real client IP
+- fixed JS/CSS caching problems with browsers
+- */login* route now redirects to a callback URL instead of returning a 200 status code when the user is already authenticated
+- updated dependencies (including an update to TypeScript 5 and Golang 1.20.x). this also should fix some security vulnerabilities with *golang.org/x/net*
+
 ## [0.0.8] - 2023-01-15
 - performance optimization to mitigate argon2 performance hit
 - added 'show password' functionality in the login form

@@ -38,7 +38,7 @@ var staticFiles embed.FS
 // if the executable is build using the Go build tag 'prod'.
 var GinMode = gin.DebugMode
 
-const AppVersion = "0.0.8"
+const AppVersion = "0.0.9"
 
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())

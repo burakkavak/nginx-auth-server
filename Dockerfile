@@ -1,6 +1,6 @@
 FROM alpine:3.17.0
 
-ARG VERSION="0.0.8"
+ARG VERSION="0.0.9"
 
 LABEL build_version="nginx-auth-server version ${VERSION}"
 LABEL maintainer="burakkavak"

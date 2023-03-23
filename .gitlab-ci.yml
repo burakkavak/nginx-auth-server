@@ -4,7 +4,7 @@ stages:
   - release
 
 variables:
-  PACKAGE_VERSION: "0.0.8"
+  PACKAGE_VERSION: "0.0.9"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}"
   PROJECT_NAME: "nginx-auth-server"
   LINUX_386_BINARY: "${PROJECT_NAME}-linux-i386"
