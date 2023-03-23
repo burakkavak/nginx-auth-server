@@ -211,7 +211,7 @@ $ npm run build
 Run the Go application
 
 ```shell
-$ go run ./src/ run
+$ go build -o nginx-auth-server ./src/ && ./nginx-auth-server run
 ```
 
 You can now point a nginx webserver to this auth-server. Refer to the nginx configuration in the *[Getting Started](#getting-started)* section.
