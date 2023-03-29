@@ -392,7 +392,7 @@ func processLoginForm(c *gin.Context) {
 		// if a user with the given username was found in the database, check password validity
 		if CompareHashAndPassword(user.Password, data.Password) != nil {
 			c.AbortWithStatus(401)
-			authLog.Printf("invalid password for user with username '%s' and client IP '%s'\n", data.Username, clientIp)
+			authLog.Printf("invalid password for user with username '%s' %s and client IP '%s'\n", data.Username, clientIp, locationText)
 			return
 		} else {
 			// if TOTP is enabled for the user, check the validity of the TOTP token input from the user
