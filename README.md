@@ -25,6 +25,7 @@ A lightweight authentication server designed to be used in conjunction with ngin
 - support for Two-Factor Authentication (2FA)
 - support for LDAP to validate user credentials
 - optional bot protection with Google reCAPTCHA
+- location logging with MaxMind® GeoIP2 database
 
 ## Getting Started
 
@@ -75,6 +76,7 @@ The docker application can be configured using environment variables. Modify the
 | `RECAPTCHA_ENABLED` | `false` | Enable/disable Google reCAPTCHA v2 (invisible) support for the login form |
 | `RECAPTCHA_SITE_KEY` |  | reCAPTCHA site key that is provided by Google upon site creation |
 | `RECAPTCHA_SECRET_KEY` |  | reCAPTCHA secret key that is provided by Google upon site creation |
+| `GEOIP_PATH` | `` | File path to MaxMind® GeoLite2 City database (inside the container) |
 
 ### Native
 
@@ -240,6 +242,7 @@ See [`CHANGELOG`](./CHANGELOG.md)
 - [gin-gonic/gin](https://github.com/gin-gonic/gin)
 - [go-ini/ini](https://github.com/go-ini/ini)
 - [go-ldap/ldap](https://github.com/go-ldap/ldap)
+- [oschwald/geoip2-golang](https://github.com/oschwald/geoip2-golang)
 - [pquerna/otp](https://github.com/pquerna/otp)
 - [urfave/cli](https://github.com/urfave/cli)
 

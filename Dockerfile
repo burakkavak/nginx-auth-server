@@ -31,6 +31,8 @@ ENV LDAP_DOMAIN_COMPONENTS=""
 ENV RECAPTCHA_ENABLED="false"
 ENV RECAPTCHA_SITE_KEY=""
 ENV RECAPTCHA_SECRET_KEY=""
+
+ENV GEOIP_PATH=""
 # ---------------- ENVIRONMENT VARIABLES END ----------------
 
 RUN apkArch="$(apk --print-arch)"; \

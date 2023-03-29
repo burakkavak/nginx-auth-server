@@ -367,6 +367,14 @@ func processLoginForm(c *gin.Context) {
 		}
 	}
 
+	// prepare location data for logging purposes
+	locationText := "(City: ? --- Country: ?)"
+	location := GetLocationFromIP(clientIp)
+
+	if location != nil {
+		locationText = fmt.Sprintf("(City: %s --- Country: %s)", location.City, location.Country)
+	}
+
 	user := GetUserByUsername(data.Username)
 
 	if user == nil {
@@ -374,7 +382,8 @@ func processLoginForm(c *gin.Context) {
 		if ldapAuthenticate(data.Username, data.Password) {
 			createAndSetAuthCookie(c, data.Username)
 			c.Status(200)
-			authLog.Printf("LDAP user with username '%s' and client IP '%s' logged in successfully\n", data.Username, clientIp)
+
+			authLog.Printf("LDAP user with username '%s' and client IP '%s' %s logged in successfully\n", data.Username, clientIp, locationText)
 		} else {
 			c.AbortWithStatus(401)
 			return
@@ -400,7 +409,7 @@ func processLoginForm(c *gin.Context) {
 
 			cookie := createAndSetAuthCookie(c, user.Username)
 			c.JSON(200, gin.H{"expires": cookie.Expires.UnixMilli()})
-			authLog.Printf("user with username '%s' and client IP '%s' logged in successfully\n", data.Username, clientIp)
+			authLog.Printf("user with username '%s' and client IP '%s' %s logged in successfully\n", data.Username, clientIp, locationText)
 		}
 	}
 }

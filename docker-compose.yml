@@ -20,9 +20,11 @@ services:
 #      - RECAPTCHA_ENABLED=false
 #      - RECAPTCHA_SITE_KEY=
 #      - RECAPTCHA_SECRET_KEY=
+#      - GEOIP_PATH="/opt/nginx-auth-server/geolite2/GeoLite2-City.mmdb"
     volumes:
       - ./data:/opt/nginx-auth-server/data
 #      - ./certs:/opt/nginx-auth-server/certs
+#      - ./geolite2:/opt/nginx-auth-server/geolite2"
     ports:
       - "17397:17397" # HTTP port
 #      - "17760:17760" # TLS/HTTPS port

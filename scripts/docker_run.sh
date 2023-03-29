@@ -30,6 +30,9 @@
   echo "enabled = $RECAPTCHA_ENABLED"
   echo "site_key = $RECAPTCHA_SITE_KEY"
   echo "secret_key = $RECAPTCHA_SECRET_KEY"
+
+  echo "[GeoIP]"
+  echo "path = $GEOIP_PATH"
 } > "${BASE_DIR}/config.ini"
 
 # execute Dockerfile 'CMD'

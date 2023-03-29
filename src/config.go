@@ -46,12 +46,18 @@ type Recaptcha struct {
 	SecretKey string `ini:"secret_key"`
 }
 
+// GeoIP :: [GeoIP]-Section of .ini
+type GeoIP struct {
+	Path string `ini:"path"`
+}
+
 type Config struct {
 	Server
 	TLS
 	Cookies
 	LDAP
 	Recaptcha
+	GeoIP
 }
 
 var (
@@ -87,6 +93,9 @@ var (
 			Enabled:   false,
 			SiteKey:   "",
 			SecretKey: "",
+		},
+		GeoIP: GeoIP{
+			Path: "",
 		},
 	}
 )
@@ -203,4 +212,9 @@ func GetRecaptchaSiteKey() string {
 func GetRecaptchaSecretKey() string {
 	parse()
 	return config.Recaptcha.SecretKey
+}
+
+func GetGeoIPDatabasePath() string {
+	parse()
+	return config.GeoIP.Path
 }
