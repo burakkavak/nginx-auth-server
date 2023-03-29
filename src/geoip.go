@@ -64,7 +64,7 @@ func GetLocationFromIP(ip string) *Location {
 	}
 
 	if record.Country.Names["en"] != "" {
-		city = record.Country.Names["en"]
+		country = record.Country.Names["en"]
 	}
 
 	return &Location{
