@@ -67,7 +67,7 @@ The docker application can be configured using environment variables. Modify the
 | `TLS_CERT_KEY` | `/opt/nginx-auth-server/certs/server.key` | Path of the SSL certificate key (inside the container) |
 | `COOKIES_LIFETIME` | `7` | Cookie lifetime in days. User has to re-authenticate after expiration |
 | `COOKIES_SECURE` | `true` | Set secure attribute for cookies. The browser will only send the auth cookie in a HTTPS context if this is enabled |
-| `COOKIES_NAME` | `Nginx-Auth-Server-Token` | Set cookie name attribute for cookie. Useful if you running more than one auth server on the same domain. |
+| `COOKIES_NAME` | `Nginx-Auth-Server-Token` | Set cookie name attribute for cookie. Useful if you are running more than one auth server on the same domain. |
 | `LDAP_ENABLED` | `false` | Enable/disable LDAP support. The application will prioritize local authentication data first |
 | `LDAP_URL` |  | LDAP url. Example for TLS connection: `ldaps://ldap.example.com:636`. Example for non-TLS connection: `ldap://ldap.example.com:389` |
 | `LDAP_ORGANIZATIONAL_UNIT` | `users` | LDAP organizational unit (OU) that is used to search the user |
