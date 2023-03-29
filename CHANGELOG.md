@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.10] - TBD
+- added support for changing the cookie name (see: https://github.com/burakkavak/nginx-auth-server/issues/3)
+
 ## [0.0.9] - 2023-03-23
 - fixed IP address logging upon authentication to log the real client IP
 - fixed JS/CSS caching problems with browsers

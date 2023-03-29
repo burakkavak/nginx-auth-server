@@ -1,4 +1,4 @@
-FROM alpine:3.17.0
+FROM alpine:3.17.2
 
 ARG VERSION="0.0.9"
 
@@ -21,6 +21,7 @@ ENV TLS_CERT_KEY="/opt/nginx-auth-server/certs/server.key"
 
 ENV COOKIES_LIFETIME=7
 ENV COOKIES_SECURE="true"
+ENV COOKIES_NAME="Nginx-Auth-Server-Token"
 
 ENV LDAP_ENABLED="false"
 ENV LDAP_URL=""

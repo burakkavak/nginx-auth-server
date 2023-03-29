@@ -26,8 +26,9 @@ type TLS struct {
 
 // Cookies :: [Cookies]-Section of .ini
 type Cookies struct {
-	Lifetime int  `ini:"lifetime"`
-	Secure   bool `ini:"secure"`
+	Lifetime int    `ini:"lifetime"`
+	Secure   bool   `ini:"secure"`
+	Name     string `ini:"name"`
 }
 
 // LDAP :: [LDAP]-Section of .ini
@@ -56,6 +57,7 @@ type Config struct {
 var (
 	// parsed defines if the config.ini was already parsed
 	parsed = false
+
 	// config defines the default configuration state and
 	// will be overridden with any changed values in the config.ini
 	config = &Config{
@@ -73,6 +75,7 @@ var (
 		Cookies: Cookies{
 			Lifetime: 7,
 			Secure:   true,
+			Name:     "Nginx-Auth-Server-Token",
 		},
 		LDAP: LDAP{
 			Enabled:            false,
@@ -160,6 +163,11 @@ func GetCookieLifetime() int {
 func GetCookieSecure() bool {
 	parse()
 	return config.Cookies.Secure
+}
+
+func GetCookieName() string {
+	parse()
+	return config.Cookies.Name
 }
 
 func GetLDAPEnabled() bool {

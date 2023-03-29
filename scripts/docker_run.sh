@@ -18,6 +18,7 @@
   echo "[Cookies]"
   echo "lifetime = $COOKIES_LIFETIME"
   echo "secure = $COOKIES_SECURE"
+  echo "name = $COOKIES_NAME"
 
   echo "[LDAP]"
   echo "enabled = $LDAP_ENABLED"

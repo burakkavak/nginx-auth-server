@@ -56,24 +56,25 @@ $ docker exec -it nginx-auth-server nginx-auth-server cookie list
 
 The docker application can be configured using environment variables. Modify the *docker-compose.yml* and restart the container so the changes take effect.
 
-|    Environment variable    |               Default value               | Description                                                                                                                         |
-|:--------------------------:|:-----------------------------------------:|-------------------------------------------------------------------------------------------------------------------------------------|
-|  `SERVER_LISTEN_ADDRESS`   |                 `0.0.0.0`                 | The HTTP(S) server is listening to requests on this address (inside the container)                                                  |
-|    `SERVER_LISTEN_PORT`    |                  `17397`                  | The application is going to listen for HTTP requests on this port (inside the container)                                            |
-|      `SERVER_DOMAIN`       |                `localhost`                | Domain used to set the authentication cookie and as issuer for TOTP. E.g. `example.org`                                             |
-|       `TLS_ENABLED`        |                  `false`                  | Enable HTTPS/TLS encryption for the webserver. The unencrypted HTTP server will be disabled                                         |
-|     `TLS_LISTEN_PORT`      |                  `17760`                  | The application is going to listen for HTTPS requests on this port (inside the container)                                           |
-|      `TLS_CERT_PATH`       | `/opt/nginx-auth-server/certs/server.crt` | Path of the SSL certificate (inside the container)                                                                                  |
-|       `TLS_CERT_KEY`       | `/opt/nginx-auth-server/certs/server.key` | Path of the SSL certificate key (inside the container)                                                                              |
-|     `COOKIES_LIFETIME`     |                    `7`                    | Cookie lifetime in days. User has to re-authenticate after expiration                                                               |
-|      `COOKIES_SECURE`      |                  `true`                   | Set secure attribute for cookies. The browser will only send the auth cookie in a HTTPS context if this is enabled                  |
-|       `LDAP_ENABLED`       |                  `false`                  | Enable/disable LDAP support. The application will prioritize local authentication data first                                        |
-|         `LDAP_URL`         |                                           | LDAP url. Example for TLS connection: `ldaps://ldap.example.com:636`. Example for non-TLS connection: `ldap://ldap.example.com:389` |
-| `LDAP_ORGANIZATIONAL_UNIT` |                  `users`                  | LDAP organizational unit (OU) that is used to search the user                                                                       |
-|  `LDAP_DOMAIN_COMPONENTS`  |                                           | LDAP baseDN (DC) of the LDAP tree. Example: `dc=example,dc=org`                                                                     |
-|    `RECAPTCHA_ENABLED`     |                  `false`                  | Enable/disable Google reCAPTCHA v2 (invisible) support for the login form                                                           |
-|    `RECAPTCHA_SITE_KEY`    |                                           | reCAPTCHA site key that is provided by Google upon site creation                                                                    |
-|   `RECAPTCHA_SECRET_KEY`   |                                           | reCAPTCHA secret key that is provided by Google upon site creation                                                                  |
+| Environment variable | Default value | Description |
+|:-:|:-:|--|
+| `SERVER_LISTEN_ADDRESS` | `0.0.0.0` | The HTTP(S) server is listening to requests on this address (inside the container) |
+| `SERVER_LISTEN_PORT` | `17397` | The application is going to listen for HTTP requests on this port (inside the container) |
+| `SERVER_DOMAIN` | `localhost` | Domain used to set the authentication cookie and as issuer for TOTP. E.g. `example.org` |
+| `TLS_ENABLED` | `false` | Enable HTTPS/TLS encryption for the webserver. The unencrypted HTTP server will be disabled |
+| `TLS_LISTEN_PORT` | `17760` | The application is going to listen for HTTPS requests on this port (inside the container) |
+| `TLS_CERT_PATH` | `/opt/nginx-auth-server/certs/server.crt` | Path of the SSL certificate (inside the container) |
+| `TLS_CERT_KEY` | `/opt/nginx-auth-server/certs/server.key` | Path of the SSL certificate key (inside the container) |
+| `COOKIES_LIFETIME` | `7` | Cookie lifetime in days. User has to re-authenticate after expiration |
+| `COOKIES_SECURE` | `true` | Set secure attribute for cookies. The browser will only send the auth cookie in a HTTPS context if this is enabled |
+| `COOKIES_NAME` | `Nginx-Auth-Server-Token` | Set cookie name attribute for cookie. Useful if you running more than one auth server on the same domain. |
+| `LDAP_ENABLED` | `false` | Enable/disable LDAP support. The application will prioritize local authentication data first |
+| `LDAP_URL` |  | LDAP url. Example for TLS connection: `ldaps://ldap.example.com:636`. Example for non-TLS connection: `ldap://ldap.example.com:389` |
+| `LDAP_ORGANIZATIONAL_UNIT` | `users` | LDAP organizational unit (OU) that is used to search the user |
+| `LDAP_DOMAIN_COMPONENTS` |  | LDAP baseDN (DC) of the LDAP tree. Example: `dc=example,dc=org` |
+| `RECAPTCHA_ENABLED` | `false` | Enable/disable Google reCAPTCHA v2 (invisible) support for the login form |
+| `RECAPTCHA_SITE_KEY` |  | reCAPTCHA site key that is provided by Google upon site creation |
+| `RECAPTCHA_SECRET_KEY` |  | reCAPTCHA secret key that is provided by Google upon site creation |
 
 ### Native
 

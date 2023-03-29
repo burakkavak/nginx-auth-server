@@ -210,7 +210,7 @@ func removeUser(username string) {
 // authenticate handles the /auth route. If a valid cookie is found in the request header, the
 // the response will be 200. If the cookie is invalid or expired, 401 is set as a response status.
 func authenticate(c *gin.Context) {
-	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie(GetCookieName())
 
 	if err != nil {
 		c.AbortWithStatus(401)
@@ -232,7 +232,7 @@ func authenticate(c *gin.Context) {
 // will be redirected to the root page. If the user is not authenticated,
 // the login form template will be displayed.
 func login(c *gin.Context) {
-	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie(GetCookieName())
 
 	if err == nil {
 		if _, err = VerifyCookie(token); err == nil {
@@ -258,7 +258,7 @@ func login(c *gin.Context) {
 // logout handles the /logout route. If a valid cookie is found in the request header, the
 // the response will be 200 and the cookie will be deleted.
 func logout(c *gin.Context) {
-	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie(GetCookieName())
 	clientIp := GetClientIpFromContext(c)
 
 	if err != nil {
@@ -314,7 +314,7 @@ type RecaptchaResponse struct {
 // If the user has provided valid credentials in the login form, the response will contain a new cookie (200).
 // If the username, the password, the TOTP token or the reCAPTCHA token is invalid, the request is rejected.
 func processLoginForm(c *gin.Context) {
-	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie(GetCookieName())
 	clientIp := GetClientIpFromContext(c)
 
 	if err == nil {
@@ -411,7 +411,7 @@ func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 	plainCookieValue := GeneratePassword(96, 25, 35)
 
 	cookie := Cookie{
-		Name:     "Nginx-Auth-Server-Token",
+		Name:     GetCookieName(),
 		Value:    GenerateHash(plainCookieValue),
 		Expires:  time.Now().AddDate(0, 0, GetCookieLifetime()),
 		Domain:   GetDomain(),
@@ -444,7 +444,7 @@ func createAndSetAuthCookie(c *gin.Context, username string) Cookie {
 // 200 and the username (formatted as JSON) is returned.
 // If the cookie in the request header is invalid, 401 Unauthorized is returned.
 func whoami(c *gin.Context) {
-	token, err := c.Cookie("Nginx-Auth-Server-Token")
+	token, err := c.Cookie(GetCookieName())
 
 	if err != nil {
 		c.AbortWithStatus(401)

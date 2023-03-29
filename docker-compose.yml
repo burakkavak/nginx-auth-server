@@ -11,6 +11,8 @@ services:
 #      - TLS_CERT_PATH=/opt/nginx-auth-server/certs/server.crt
 #      - TLS_CERT_KEY=/opt/nginx-auth-server/certs/server.key
 #      - COOKIES_LIFETIME=7
+#      - COOKIES_SECURE=true
+#      - COOKIES_NAME="Nginx-Auth-Server-Token"
 #      - LDAP_ENABLED=false
 #      - LDAP_URL=
 #      - LDAP_ORGANIZATIONAL_UNIT=users
