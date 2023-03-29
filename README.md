@@ -1,6 +1,6 @@
 # nginx-auth-server
 
-A lightweight authentication server designed to be used in conjunction with nginx 'http_auth_request_module'. nginx-auth-server provides an additional authentication layer that is useful for reverse proxy scenarios, where the proxy does not support user authentication.
+A lightweight authentication server designed to be used in conjunction with nginx 'http_auth_request_module'. nginx-auth-server provides an additional authentication layer that is useful for reverse proxy scenarios, where the proxied service does not support user authentication.
 
 ## Table of Contents
 
